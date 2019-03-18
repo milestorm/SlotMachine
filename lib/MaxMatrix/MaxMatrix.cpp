@@ -147,6 +147,15 @@ void MaxMatrix::writeSprite(int x, int y, const byte* sprite)
 			}
 }
 
+void MaxMatrix::writeSpriteZero(const byte* sprite)
+{
+	for (int i=0; i<8; i++)
+	{
+		if (i >= 0 && i < 80)
+			setColumn(i, sprite[i]);
+	}
+}
+
 void MaxMatrix::reload()
 {
 	for (int i=0; i<8; i++)
