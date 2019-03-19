@@ -61,7 +61,7 @@ symbol bude "6"
 */
 int rollTheCylinder(int cylinderArr[], int arrSize, int shiftSpeed, int shiftCount, int startingIndex = -1){
 	int realIndex = 0;
-	int spacer = 1;
+
 	if (startingIndex != -1) {
 		realIndex = startingIndex;
 	}
@@ -73,19 +73,12 @@ int rollTheCylinder(int cylinderArr[], int arrSize, int shiftSpeed, int shiftCou
       realIndex = realIndex - arrSize;
     }
 
-		// space between symbols
-		if (shiftCount == (mainCount + 1)) {
-			spacer = 0;
-		} else {
-			spacer = 1;
-		}
-
 		// display symbol to hidden place
 		memcpy_P(buffer, CH + 10 * cylinderArr[realIndex], 10);
-		dot_matrix.writeSprite(8, 0, buffer);
-		dot_matrix.setColumn(8 + buffer[0], 0);
+		dot_matrix.writeSprite(9, 0, buffer);
+		dot_matrix.setColumn(9 + buffer[0], 0);
 
-		for (int i = 0; i < buffer[0] + spacer; i++) // shift from hidden place
+		for (int i = 0; i < buffer[0] + 1; i++) // shift from hidden place
 		{
 			delay(shiftSpeed);
 			dot_matrix.shiftLeft(false, false);
