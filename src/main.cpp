@@ -3,18 +3,18 @@
 #include <avr/pgmspace.h>
 
 PROGMEM const unsigned char CH[] = {
-8, 8, B00111110, B01000001, B01000001, B00111110, B00000000, B00111110, B01000001, B01000001, // 0
-8, 8, B01000010, B01111111, B01000000, B00000000, B00000000, B01000010, B01111111, B01000000, // 1
-8, 8, B01100010, B01010001, B01001001, B01000110, B00000000, B01100010, B01010001, B01001001, // 2
-8, 8, B00100010, B01000001, B01001001, B00110110, B00000000, B00100010, B01000001, B01001001, // 3
-8, 8, B00011000, B00010100, B00010010, B01111111, B00000000, B00011000, B00010100, B00010010, // 4
-8, 8, B00100111, B01000101, B01000101, B00111001, B00000000, B00100111, B01000101, B01000101, // 5
-8, 8, B00111110, B01001001, B01001001, B00110000, B00000000, B00111110, B01001001, B01001001, // 6
-8, 8, B01100001, B00010001, B00001001, B00000111, B00000000, B01100001, B00010001, B00001001, // 7
-8, 8, B00110110, B01001001, B01001001, B00110110, B00000000, B00110110, B01001001, B01001001, // 8
-8, 8, B00000110, B01001001, B01001001, B00111110, B00000000, B00000110, B01001001, B01001001, // 9
-2, 8, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, // : as space
+8, 8, B00000110, B01101111, B11110110, B01100100, B00100100, B00101000, B00110000, B00100000, // 0: cherry
+8, 8, B00000000, B00111100, B01111110, B11111101, B01100010, B00111100, B00000000, B00000000, // 1: lemon
+8, 8, B00111100, B01111110, B11111111, B11111111, B11111101, B11111101, B01100010, B00111100, // 2: orange
+8, 8, B00000000, B00011110, B01111111, B11111101, B11111010, B11100100, B01111000, B00000000, // 3: plum
+8, 8, B00011000, B11111111, B01111010, B01111010, B01111010, B01111010, B00110100, B00011000, // 4: bell
+8, 8, B00011000, B00111100, B00111100, B01111110, B01111110, B00011000, B00010000, B00100000, // 5: grape
+8, 8, B00011100, B00111110, B01111101, B11111010, B11110100, B11101000, B01010000, B00100000, // 6: melon
+8, 8, B00011000, B00011000, B00011000, B00011000, B00110000, B01100000, B01111110, B01111110, // 7: seven
+8, 8, B01000010, B00100100, B00011000, B00111100, B11111111, B00011000, B00010000, B00010000, // 8: star
+8, 8, B00111100, B01000010, B10011001, B10100101, B10000001, B10100101, B01000010, B00111100, // 9: joker
 };
+
 
 // Dot Matrix pin definitions
 #define DOTMATRIX_DIN 4
@@ -23,17 +23,19 @@ PROGMEM const unsigned char CH[] = {
 #define DOTMATRIX_DISPLAY_COUNT 1
 MaxMatrix dot_matrix(DOTMATRIX_DIN, DOTMATRIX_CS, DOTMATRIX_CLK, DOTMATRIX_DISPLAY_COUNT);
 
-byte xicht_happy[] = {B11111100, B00100000, B01001100, B01000000, B01000000, B01001100, B00100000, B01010101};
-
+byte xicht_happy[] = {8, 8, B01010101, B10101010, B00000000, B00011000, B00011000, B00000000, B10101010, B01010101};
 
 // Scrollingtext helpers
 byte buffer[10];
-char start_message[] = "0123456789";  // Scrolling Text
+int cylinder[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 7, 7, 7, 5, 3, 4, 5, 3, 5, 8};
+int cylinderStart = 0; // starting position for cylinder
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 // Put extracted character on Display
 /*
+String, co se posle je vlastne "valec" se symboly. kazde cislo je jiny symbol
+
 obalit fci printchar nejak , aby brala dany string, co ma vypsat
 ten by se porad opakoval...
 Tzn. ze pokud je char posledni v rade, tak dalsi char je prvni char.
@@ -57,30 +59,44 @@ pocet shiftu je 31
 symbol bude "6"
 
 */
+int rollTheCylinder(int cylinderArr[], int arrSize, int shiftSpeed, int shiftCount, int startingIndex = -1){
+	int realIndex = 0;
+	int spacer = 1;
+	if (startingIndex != -1) {
+		realIndex = startingIndex;
+	}
 
+	for (int mainCount = 0; mainCount < shiftCount; mainCount++) // shift x times
+	{
 
-void printCharWithShift(char c, int shift_speed){
-  if (c < 48) return;
-  c -= 48;
-  memcpy_P(buffer, CH + 10 * c, 10);
-  dot_matrix.writeSprite(DOTMATRIX_DISPLAY_COUNT * 8, 0, buffer);
-  dot_matrix.setColumn(DOTMATRIX_DISPLAY_COUNT * 8 + buffer[0], 0);
-
-  for (int i = 0; i < buffer[0] + 1; i++)
-  {
-    delay(shift_speed);
-    dot_matrix.shiftLeft(false, false);
-  }
-}
-
-// Extract characters from Scrolling text
-void printRollWithShift(char* s, int shift_speed){
-    while (*s != 0){
-        printCharWithShift(*s, shift_speed);
-        s++;
+		if (realIndex >= arrSize) { // endless shift thru the cylinder array
+      realIndex = realIndex - arrSize;
     }
-}
 
+		// space between symbols
+		if (shiftCount == (mainCount + 1)) {
+			spacer = 0;
+		} else {
+			spacer = 1;
+		}
+
+		// display symbol to hidden place
+		memcpy_P(buffer, CH + 10 * cylinderArr[realIndex], 10);
+		dot_matrix.writeSprite(8, 0, buffer);
+		dot_matrix.setColumn(8 + buffer[0], 0);
+
+		for (int i = 0; i < buffer[0] + spacer; i++) // shift from hidden place
+		{
+			delay(shiftSpeed);
+			dot_matrix.shiftLeft(false, false);
+		}
+
+		realIndex++;
+
+	}
+
+	return realIndex;
+}
 
 
 void setup() {
@@ -91,13 +107,22 @@ void setup() {
     dot_matrix.setIntensity(1); // dot matix intensity 0-15
     dot_matrix.clear();
 
-    Serial.println("Tohle je test");
+    dot_matrix.writeSprite(0, 0, xicht_happy);
 }
 
 void loop() {
 
+		delay(3000);
 
-    printRollWithShift(start_message, 100);  // Send scrolling Text
+		int val = rollTheCylinder(cylinder, 20, 100, 4);
+
+		delay(4000);
+
+		val = rollTheCylinder(cylinder, 20, 100, 7, val);
+
+		delay(1000);
+
+		val = rollTheCylinder(cylinder, 20, 100, 5, val);
 
     while(1){
         /* endless stop */
