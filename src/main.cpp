@@ -21,7 +21,7 @@ PROGMEM const unsigned char CH[] = {
 #define DOTMATRIX_CS  3
 #define DOTMATRIX_CLK 2
 #define DOTMATRIX_DISPLAY_COUNT 1
-MaxMatrix dot_matrix(DOTMATRIX_DIN, DOTMATRIX_CS, DOTMATRIX_CLK, DOTMATRIX_DISPLAY_COUNT); 
+MaxMatrix dot_matrix(DOTMATRIX_DIN, DOTMATRIX_CS, DOTMATRIX_CLK, DOTMATRIX_DISPLAY_COUNT);
 
 byte xicht_happy[] = {B11111100, B00100000, B01001100, B01000000, B01000000, B01001100, B00100000, B01010101};
 
@@ -39,8 +39,8 @@ void printCharWithShift(char c, int shift_speed){
   memcpy_P(buffer, CH + 10 * c, 10);
   dot_matrix.writeSprite(DOTMATRIX_DISPLAY_COUNT * 8, 0, buffer);
   dot_matrix.setColumn(DOTMATRIX_DISPLAY_COUNT * 8 + buffer[0], 0);
-  
-  for (int i = 0; i < buffer[0] + 1; i++) 
+
+  for (int i = 0; i < buffer[0] + 1; i++)
   {
     delay(shift_speed);
     dot_matrix.shiftLeft(false, false);
@@ -76,5 +76,5 @@ void loop() {
     while(1){
         /* endless stop */
     }
-    
+
 }
