@@ -75,7 +75,7 @@ int rollTheCylinder(int cylinderArr[], int arrSize, int shiftSpeed, int shiftCou
 
 		// display symbol to hidden place
 		memcpy_P(buffer, CH + 10 * cylinderArr[realIndex], 10);
-		dot_matrix.writeSprite(9, 0, buffer);
+		dot_matrix.writeSprite(9, 0, buffer); // writes to 9th position because of 1px space
 		dot_matrix.setColumn(9 + buffer[0], 0);
 
 		for (int i = 0; i < buffer[0] + 1; i++) // shift from hidden place
