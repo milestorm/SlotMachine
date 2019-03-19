@@ -28,11 +28,37 @@ byte xicht_happy[] = {B11111100, B00100000, B01001100, B01000000, B01000000, B01
 
 // Scrollingtext helpers
 byte buffer[10];
-char start_message[] = "0:1:2:3:4:5:6:7:8:9:";  // Scrolling Text
+char start_message[] = "0123456789";  // Scrolling Text
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 // Put extracted character on Display
+/*
+obalit fci printchar nejak , aby brala dany string, co ma vypsat
+ten by se porad opakoval...
+Tzn. ze pokud je char posledni v rade, tak dalsi char je prvni char.
+
+a bylo by tam pocet "otoceni", coz by bylo pocet shiftu, co to udela.
+podle otoceni najdes v arrayi dany symbol a dokazes ho vytahnout.
+
+pak naky zpomalovani a zrychlovani pri otoceni, to az pri dalsi iteraci
+
+priklad.
+string je "0123456789"
+pocet shiftu je 4
+tkaze symbol na kterym se to zastavi je "3"
+
+string je "0123456789"
+pocet shiftu je 18
+symbol bude "7"
+
+string je "8743987098564839863"
+pocet shiftu je 31
+symbol bude "6"
+
+*/
+
+
 void printCharWithShift(char c, int shift_speed){
   if (c < 48) return;
   c -= 48;
