@@ -81,6 +81,7 @@ cista jizda
 
 
 */
+// Best shiftSpeed is 25
 int rollTheCylinder(int cylinderArr[], int arrSize, int shiftSpeed, int shiftCount, int startingIndex = -1){
 	int realIndex = 0;
 	int realShiftSpeed = shiftSpeed;
@@ -91,7 +92,7 @@ int rollTheCylinder(int cylinderArr[], int arrSize, int shiftSpeed, int shiftCou
 	// set right speed based on actual shiftspeed
 	for (int sb = 0; sb < shiftStartLength; sb++)
 	{
-		shiftStart[sb] = shiftStart[sb + shiftSpeed];
+		shiftStart[sb] = shiftStart[sb] + shiftSpeed;
 	}
 
 	if (startingIndex != -1) {
@@ -149,15 +150,15 @@ void loop() {
 
 		delay(3000);
 
-		int val = rollTheCylinder(cylinder, 20, 100, 4);
+		int val = rollTheCylinder(cylinder, 20, 25, 10); // 25 is the best speed
 
 		delay(4000);
 
-		val = rollTheCylinder(cylinder, 20, 100, 7, val);
+		val = rollTheCylinder(cylinder, 20, 25, 30, val);
 
 		delay(1000);
 
-		val = rollTheCylinder(cylinder, 20, 100, 5, val);
+		val = rollTheCylinder(cylinder, 20, 25, 20, val);
 
     while(1){
         /* endless stop */
