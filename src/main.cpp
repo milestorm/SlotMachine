@@ -58,9 +58,41 @@ string je "8743987098564839863"
 pocet shiftu je 31
 symbol bude "6"
 
+https://daycounter.com/Calculators/Sine-Generator-Calculator2.phtml
+sinus
+
+75,88,101,113,123,132,140,145,149,
+150,149,145,140,132,123,113,101,88,75,62,49,38,27,18,10,5,1,
+0,1,5,10,18,27,38,49,62,75,
+
+pridat ke kazdymu 50.
+pak vzit to od 150 do 1 a to bude zacatek, a otoceny bude konec.
+
+
+rozjizdeni
+200,199,195,190,182,173,163,151,138,125,112,99,88,77,68,60,55,51
+
+zpomaleni - mozna nepouzivat, ale zastavit rychle, pro efekt
+51,55,60,68,77,88,99,112,125,138,151,163,173,182,190,195,199,200
+
+cista jizda
+50
+
+
+
 */
 int rollTheCylinder(int cylinderArr[], int arrSize, int shiftSpeed, int shiftCount, int startingIndex = -1){
 	int realIndex = 0;
+	int realShiftSpeed = shiftSpeed;
+	int shiftStartPosition = 0;
+	int shiftStartLength = 18;
+	int shiftStart[] = {150,149,145,140,132,123,113,101,88,75,62,49,38,27,18,10,5,1}; // slow start curve. 18 steps: two symbols
+
+	// set right speed based on actual shiftspeed
+	for (int sb = 0; sb < shiftStartLength; sb++)
+	{
+		shiftStart[sb] = shiftStart[sb + shiftSpeed];
+	}
 
 	if (startingIndex != -1) {
 		realIndex = startingIndex;
@@ -80,8 +112,18 @@ int rollTheCylinder(int cylinderArr[], int arrSize, int shiftSpeed, int shiftCou
 
 		for (int i = 0; i < buffer[0] + 1; i++) // shift from hidden place
 		{
-			delay(shiftSpeed);
+			// makes the starting speed slower
+			if (shiftStartPosition < shiftStartLength) {
+				realShiftSpeed = shiftStart[shiftStartPosition];
+			}
+			else {
+				realShiftSpeed = shiftSpeed;
+			}
+
+			delay(realShiftSpeed); // REWRITE TO MILLIS!!!
 			dot_matrix.shiftLeft(false, false);
+
+			shiftStartPosition++;
 		}
 
 		realIndex++;
