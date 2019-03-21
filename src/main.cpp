@@ -34,7 +34,7 @@ int cylinderStart = 0; // starting position for cylinder
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 class SlotCylinder {
-	int *cylinderArr; // cylinder array (numbers 0 to 9)
+	int *p_cylinderArr; // cylinder array (numbers 0 to 9)
 	int arrSize; // size of cylinderArr
 	int shiftSpeed; // speed of scrolling. Best is 25
 	int shiftCount; // how many times will the cylinder turn. More like symbol shift.
@@ -43,8 +43,8 @@ class SlotCylinder {
 	int realIndex; // real index of position in cylinder
 	int realShiftSpeed; // shift speed already with slow start
 	int shiftStart[18] = {150,149,145,140,132,123,113,101,88,75,62,49,38,27,18,10,5,1}; // slow start array. Like fade in
-	int shiftStartPosition; // position for slow start
 	int shiftStartLength = 18; // length of shiftStart array. the slowing array.
+	int shiftStartPosition; // position for slow start
 
 	bool isActive;
 
@@ -52,8 +52,8 @@ class SlotCylinder {
 
 	//constructor
 	public:
-	SlotCylinder(int *_cylinderArr, int _arrSize, int _shiftSpeed, int _shiftCount, int _startingIndex = -1) {
-		*cylinderArr = *_cylinderArr;
+	SlotCylinder(int *_p_cylinderArr, int _arrSize, int _shiftSpeed, int _shiftCount, int _startingIndex = -1) {
+		p_cylinderArr = _p_cylinderArr;
 		arrSize = _arrSize;
 		shiftSpeed = _shiftSpeed;
 		shiftCount = _shiftCount;
@@ -86,7 +86,7 @@ class SlotCylinder {
 			}
 
 			// display symbol to hidden place
-			memcpy_P(buffer, CH + 10 * cylinderArr[realIndex], 10);
+			memcpy_P(buffer, CH + 10 * p_cylinderArr[realIndex], 10);
 			dot_matrix.writeSprite(9, 0, buffer); // writes to 9th position because of 1px space
 			dot_matrix.setColumn(9 + buffer[0], 0);
 
