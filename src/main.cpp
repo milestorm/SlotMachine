@@ -3,6 +3,7 @@
 #include <avdweb_VirtualDelay.h>
 #include <avr/pgmspace.h>
 
+// Symbol definitions
 PROGMEM const unsigned char CH[] = {
 8, 8, B00000110, B01101111, B11110110, B01100100, B00100100, B00101000, B00110000, B00100000, // 0: cherry
 8, 8, B00000000, B00111100, B01111110, B11111101, B01100010, B00111100, B00000000, B00000000, // 1: lemon
@@ -16,6 +17,8 @@ PROGMEM const unsigned char CH[] = {
 8, 8, B00111100, B01000010, B10011001, B10100101, B10000001, B10100101, B01000010, B00111100, // 9: joker
 };
 
+// Symbols pay value (0 to 9), for bets x1
+int symbolValue[10] = {4, 4, 8, 8, 12, 16, 20, 30, 40, 75};
 
 // Dot Matrix pin definitions
 #define DOTMATRIX_DIN 4
@@ -27,7 +30,9 @@ MaxMatrix dot_matrix(DOTMATRIX_DIN, DOTMATRIX_CS, DOTMATRIX_CLK, DOTMATRIX_DISPL
 byte xicht_happy[] = {8, 8, B10000001, B01000010, B00100100, B00011000, B00011000, B00100100, B01000010, B10000001};
 
 // Cylinder definitions
-int cylinder[20] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 7, 7, 7, 5, 3, 4, 5, 3, 5, 8};
+int cylinder[20] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 7, 7, 5, 3, 4, 5, 3, 5, 8};
+
+
 
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -53,6 +58,12 @@ class SlotCylinder {
 
 	//constructor
 	public:
+	/**
+	 * Constructor of SlotCylinder
+	 * @param {int} *_p_cylinderArr pointer to array
+	 * @param {int} _arrSize size of the array
+	 * @param {int} _shiftSpeed speed of shift. Best is 25
+	 */
 	SlotCylinder(int *_p_cylinderArr, int _arrSize, int _shiftSpeed) {
 		p_cylinderArr = _p_cylinderArr;
 		arrSize = _arrSize;
@@ -60,18 +71,20 @@ class SlotCylinder {
 		realShiftSpeed = _shiftSpeed;
 	}
 
+	/**
+	 * Rolls the cylinder
+	 * @param {int} _shiftCount how many symbols will be shifted
+	 */
 	void roll(int _shiftCount) {
 		shiftCount = _shiftCount;
 		startingIndex = realIndex;
 		shiftStartPosition = 0;
 
+		isRolling = true;
+
 		// set right speed based on actual shiftspeed
-		for (int sb = 0; sb < shiftStartLength; sb++)
-		{
+		for (int sb = 0; sb < shiftStartLength; sb++) {
 			shiftStart[sb] = shiftStart[sb] + shiftSpeed;
-		}
-		if (startingIndex != -1) {
-			realIndex = startingIndex;
 		}
 
 		for (int mainCount = 0; mainCount < shiftCount; mainCount++) { // shift x times
@@ -85,13 +98,11 @@ class SlotCylinder {
 			dot_matrix.writeSprite(9, 0, buffer); // writes to 9th position because of 1px space
 			dot_matrix.setColumn(9 + buffer[0], 0);
 
-			for (int i = 0; i < buffer[0] + 1; i++) // shift from hidden place
-			{
+			for (int i = 0; i < buffer[0] + 1; i++) { // shift from hidden place
 				// makes the starting speed slower
 				if (shiftStartPosition < shiftStartLength) {
 					realShiftSpeed = shiftStart[shiftStartPosition];
-				}
-				else {
+				}	else {
 					realShiftSpeed = shiftSpeed;
 				}
 
@@ -105,7 +116,14 @@ class SlotCylinder {
 
 		}
 
+		isRolling = false;
+
 	}
+
+	int getPosition() {
+		return p_cylinderArr[realIndex - 1];
+	}
+
 
 };
 
@@ -127,17 +145,26 @@ void setup() {
 
 void loop() {
 
-		delay(3000);
+		delay(6000);
 
-		cylinder1.roll(10); // na roll pouzit shiftcount a startingindex
+		cylinder1.roll(10);
+
+		Serial.print("CYL1: ");
+		Serial.println(cylinder1.getPosition());
 
 		delay(3000);
 
 		cylinder1.roll(6);
 
+		Serial.print("CYL1: ");
+		Serial.println(cylinder1.getPosition());
+
 		delay(3000);
 
-		cylinder1.roll(15);
+		cylinder1.roll(33);
+
+		Serial.print("CYL1: ");
+		Serial.println(cylinder1.getPosition());
 
 
 
