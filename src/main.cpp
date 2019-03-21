@@ -24,51 +24,46 @@ PROGMEM const unsigned char CH[] = {
 #define DOTMATRIX_DISPLAY_COUNT 1
 MaxMatrix dot_matrix(DOTMATRIX_DIN, DOTMATRIX_CS, DOTMATRIX_CLK, DOTMATRIX_DISPLAY_COUNT);
 
-byte xicht_happy[] = {8, 8, B01010101, B10101010, B00000000, B00011000, B00011000, B00000000, B10101010, B01010101};
+byte xicht_happy[] = {8, 8, B10000001, B01000010, B00100100, B00011000, B00011000, B00100100, B01000010, B10000001};
 
-// Scrollingtext helpers
-byte buffer[10];
+// Cylinder definitions
 int cylinder[20] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 7, 7, 7, 5, 3, 4, 5, 3, 5, 8};
-int cylinderStart = 0; // starting position for cylinder
+
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 class SlotCylinder {
+	byte buffer[10];
+
 	int *p_cylinderArr; // cylinder array (numbers 0 to 9)
 	int arrSize; // size of cylinderArr
 	int shiftSpeed; // speed of scrolling. Best is 25
 	int shiftCount; // how many times will the cylinder turn. More like symbol shift.
 	int startingIndex; // the index in cylinderArr where the cylinder will start
 
-	int realIndex; // real index of position in cylinder
+	int realIndex = 0; // real index of position in cylinder
 	int realShiftSpeed; // shift speed already with slow start
 	int shiftStart[18] = {150,149,145,140,132,123,113,101,88,75,62,49,38,27,18,10,5,1}; // slow start array. Like fade in
 	int shiftStartLength = 18; // length of shiftStart array. the slowing array.
 	int shiftStartPosition; // position for slow start
 
-	bool isActive;
+	bool isRolling = false;
 
 	VirtualDelay vdelay; // initialize virtual delay
 
 	//constructor
 	public:
-	SlotCylinder(int *_p_cylinderArr, int _arrSize, int _shiftSpeed, int _shiftCount, int _startingIndex = -1) {
+	SlotCylinder(int *_p_cylinderArr, int _arrSize, int _shiftSpeed) {
 		p_cylinderArr = _p_cylinderArr;
 		arrSize = _arrSize;
 		shiftSpeed = _shiftSpeed;
-		shiftCount = _shiftCount;
-		startingIndex = _startingIndex;
-
-		realIndex = 0;
 		realShiftSpeed = _shiftSpeed;
-		shiftStartPosition = 0;
-
-		isActive = false;
 	}
 
-	int roll() {
-
-		//Serial.println(shiftStart[0]);
+	void roll(int _shiftCount) {
+		shiftCount = _shiftCount;
+		startingIndex = realIndex;
+		shiftStartPosition = 0;
 
 		// set right speed based on actual shiftspeed
 		for (int sb = 0; sb < shiftStartLength; sb++)
@@ -110,67 +105,14 @@ class SlotCylinder {
 
 		}
 
-		return realIndex;
-
 	}
 
 };
 
-/**
- * Best shiftSpeed is 25
-*/
-int rollTheCylinder(int cylinderArr[], int arrSize, int shiftSpeed, int shiftCount, int startingIndex = -1){
-	int realIndex = 0;
-	int realShiftSpeed = shiftSpeed;
-	int shiftStartPosition = 0;
-	int shiftStartLength = 18;
-	int shiftStart[] = {150,149,145,140,132,123,113,101,88,75,62,49,38,27,18,10,5,1}; // slow start curve. 18 steps: two symbols
 
-	// set right speed based on actual shiftspeed
-	for (int sb = 0; sb < shiftStartLength; sb++)
-	{
-		shiftStart[sb] = shiftStart[sb] + shiftSpeed;
-	}
 
-	if (startingIndex != -1) {
-		realIndex = startingIndex;
-	}
 
-	for (int mainCount = 0; mainCount < shiftCount; mainCount++) { // shift x times
-
-		if (realIndex >= arrSize) { // endless shift thru the cylinder array
-      realIndex = realIndex - arrSize;
-    }
-
-		// display symbol to hidden place
-		memcpy_P(buffer, CH + 10 * cylinderArr[realIndex], 10);
-		dot_matrix.writeSprite(9, 0, buffer); // writes to 9th position because of 1px space
-		dot_matrix.setColumn(9 + buffer[0], 0);
-
-		for (int i = 0; i < buffer[0] + 1; i++) // shift from hidden place
-		{
-			// makes the starting speed slower
-			if (shiftStartPosition < shiftStartLength) {
-				realShiftSpeed = shiftStart[shiftStartPosition];
-			}
-			else {
-				realShiftSpeed = shiftSpeed;
-			}
-
-			delay(realShiftSpeed); // REWRITE TO MILLIS!!!
-			dot_matrix.shiftLeft(false, false);
-
-			shiftStartPosition++;
-		}
-
-		realIndex++;
-
-	}
-
-	return realIndex;
-}
-
-SlotCylinder cylinder1(cylinder, 20, 25, 10);
+SlotCylinder cylinder1(cylinder, 20, 25);
 
 void setup() {
     Serial.begin(115200);
@@ -185,22 +127,19 @@ void setup() {
 
 void loop() {
 
-		delay(5000);
+		delay(3000);
 
-		int val = cylinder1.roll(); // na roll pouzit shiftcount a startingindex
-		/*
+		cylinder1.roll(10); // na roll pouzit shiftcount a startingindex
 
-		int val = rollTheCylinder(cylinder, 20, 25, 10); // 25 is the best speed
+		delay(3000);
 
-		delay(4000);
+		cylinder1.roll(6);
 
-		val = rollTheCylinder(cylinder, 20, 25, 30, val);
+		delay(3000);
 
-		delay(1000);
+		cylinder1.roll(15);
 
-		val = rollTheCylinder(cylinder, 20, 25, 20, val);
 
-		*/
 
     while(1){
         /* endless stop */
