@@ -28,7 +28,7 @@ byte xicht_happy[] = {8, 8, B01010101, B10101010, B00000000, B00011000, B0001100
 
 // Scrollingtext helpers
 byte buffer[10];
-int cylinder[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 7, 7, 7, 5, 3, 4, 5, 3, 5, 8};
+int cylinder[20] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 7, 7, 7, 5, 3, 4, 5, 3, 5, 8};
 int cylinderStart = 0; // starting position for cylinder
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -42,9 +42,9 @@ class SlotCylinder {
 
 	int realIndex; // real index of position in cylinder
 	int realShiftSpeed; // shift speed already with slow start
-	int shiftStart[]; // slow start array. Like fade in
+	int shiftStart[18] = {150,149,145,140,132,123,113,101,88,75,62,49,38,27,18,10,5,1}; // slow start array. Like fade in
 	int shiftStartPosition; // position for slow start
-	int shiftStartLength; // length of shiftStart array. the slowing array.
+	int shiftStartLength = 18; // length of shiftStart array. the slowing array.
 
 	bool isActive;
 
@@ -62,8 +62,6 @@ class SlotCylinder {
 		realIndex = 0;
 		realShiftSpeed = _shiftSpeed;
 		shiftStartPosition = 0;
-		shiftStartLength = 18;
-		shiftStart[] = {150,149,145,140,132,123,113,101,88,75,62,49,38,27,18,10,5,1}; // slow start curve. 18 steps: two symbols
 
 		isActive = false;
 	}
