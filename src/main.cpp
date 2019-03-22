@@ -20,18 +20,11 @@ PROGMEM const unsigned char CH[] = {
 // Symbols pay value (0 to 9), for bets x1
 int symbolValue[10] = {4, 4, 8, 8, 12, 16, 20, 30, 40, 75};
 
-// Dot Matrix pin definitions
-#define DOTMATRIX_DIN 4
-#define DOTMATRIX_CS  3
-#define DOTMATRIX_CLK 2
-#define DOTMATRIX_DISPLAY_COUNT 1
-
-byte xicht_happy[] = {8, 8, B10000001, B01000010, B00100100, B00011000, B00011000, B00100100, B01000010, B10000001};
-
 // Cylinder definitions
-int cylinder[20] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 7, 7, 5, 3, 4, 5, 3, 5, 8};
+int cylinderSymbols1[20] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 7, 7, 5, 3, 4, 5, 3, 5, 8};
 
 
+byte startingPicture[] = {8, 8, B10000001, B01000010, B00100100, B00011000, B00011000, B00100100, B01000010, B10000001};
 
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -77,7 +70,7 @@ class SlotCylinder {
 		p_dotMatrix->init(); // module initialize
     p_dotMatrix->setIntensity(1); // dot matix intensity 0-15
     p_dotMatrix->clear();
-    p_dotMatrix->writeSprite(0, 0, xicht_happy);
+    p_dotMatrix->writeSprite(0, 0, startingPicture);
 	}
 
 	/**
@@ -139,12 +132,13 @@ class SlotCylinder {
 
 
 
-SlotCylinder cylinder1(cylinder, 20, 25);
-SlotCylinder cylinder2(cylinder, 20, 25);
+SlotCylinder cylinder1(cylinderSymbols1, 20, 25);
+SlotCylinder cylinder2(cylinderSymbols1, 20, 25);
 
 void setup() {
     Serial.begin(115200);
 
+		// init display 8x8 matrix with DIN, CS, CLK
 		cylinder1.initMatrix(4, 3, 2);
 		cylinder2.initMatrix(5, 6, 7);
 }
