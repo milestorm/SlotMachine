@@ -25,7 +25,6 @@ int symbolValue[10] = {4, 4, 8, 8, 12, 16, 20, 30, 40, 75};
 #define DOTMATRIX_CS  3
 #define DOTMATRIX_CLK 2
 #define DOTMATRIX_DISPLAY_COUNT 1
-MaxMatrix dot_matrix(DOTMATRIX_DIN, DOTMATRIX_CS, DOTMATRIX_CLK, DOTMATRIX_DISPLAY_COUNT);
 
 byte xicht_happy[] = {8, 8, B10000001, B01000010, B00100100, B00011000, B00011000, B00100100, B01000010, B10000001};
 
@@ -55,6 +54,7 @@ class SlotCylinder {
 	bool isRolling = false;
 
 	VirtualDelay vdelay; // initialize virtual delay
+	MaxMatrix *p_dotMatrix;
 
 	//constructor
 	public:
@@ -69,6 +69,15 @@ class SlotCylinder {
 		arrSize = _arrSize;
 		shiftSpeed = _shiftSpeed;
 		realShiftSpeed = _shiftSpeed;
+	}
+
+	// Initialize MaxMatrix
+	void initMatrix(byte din, byte cs, byte clk) {
+		p_dotMatrix = new MaxMatrix(din, cs, clk, 1);
+		p_dotMatrix->init(); // module initialize
+    p_dotMatrix->setIntensity(1); // dot matix intensity 0-15
+    p_dotMatrix->clear();
+    p_dotMatrix->writeSprite(0, 0, xicht_happy);
 	}
 
 	/**
@@ -95,8 +104,8 @@ class SlotCylinder {
 
 			// display symbol to hidden place
 			memcpy_P(buffer, CH + 10 * p_cylinderArr[realIndex], 10);
-			dot_matrix.writeSprite(9, 0, buffer); // writes to 9th position because of 1px space
-			dot_matrix.setColumn(9 + buffer[0], 0);
+			p_dotMatrix->writeSprite(9, 0, buffer); // writes to 9th position because of 1px space
+			p_dotMatrix->setColumn(9 + buffer[0], 0);
 
 			for (int i = 0; i < buffer[0] + 1; i++) { // shift from hidden place
 				// makes the starting speed slower
@@ -107,7 +116,7 @@ class SlotCylinder {
 				}
 
 				delay(realShiftSpeed); // REWRITE TO MILLIS!!!
-				dot_matrix.shiftLeft(false, false);
+				p_dotMatrix->shiftLeft(false, false);
 
 				shiftStartPosition++;
 			}
@@ -131,16 +140,13 @@ class SlotCylinder {
 
 
 SlotCylinder cylinder1(cylinder, 20, 25);
+SlotCylinder cylinder2(cylinder, 20, 25);
 
 void setup() {
     Serial.begin(115200);
 
-    // Initialize MaxMatrix
-    dot_matrix.init(); // module initialize
-    dot_matrix.setIntensity(1); // dot matix intensity 0-15
-    dot_matrix.clear();
-
-    dot_matrix.writeSprite(0, 0, xicht_happy);
+		cylinder1.initMatrix(4, 3, 2);
+		cylinder2.initMatrix(5, 6, 7);
 }
 
 void loop() {
@@ -148,6 +154,7 @@ void loop() {
 		delay(6000);
 
 		cylinder1.roll(10);
+		cylinder2.roll(17);
 
 		Serial.print("CYL1: ");
 		Serial.println(cylinder1.getPosition());
@@ -155,6 +162,7 @@ void loop() {
 		delay(3000);
 
 		cylinder1.roll(6);
+		cylinder2.roll(10);
 
 		Serial.print("CYL1: ");
 		Serial.println(cylinder1.getPosition());
@@ -162,6 +170,7 @@ void loop() {
 		delay(3000);
 
 		cylinder1.roll(33);
+		cylinder2.roll(38);
 
 		Serial.print("CYL1: ");
 		Serial.println(cylinder1.getPosition());
