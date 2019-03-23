@@ -46,7 +46,7 @@ class SlotCylinder {
 
 	bool isRolling = false;
 
-	VirtualDelay vdelay; // initialize virtual delay
+	VirtualDelay rollDelay, rollDelay2; // initialize virtual delay
 	MaxMatrix *p_dotMatrix;
 
 	//constructor
@@ -62,6 +62,11 @@ class SlotCylinder {
 		arrSize = _arrSize;
 		shiftSpeed = _shiftSpeed;
 		realShiftSpeed = _shiftSpeed;
+
+		// set right speed based on actual shiftspeed
+		for (int sb = 0; sb < shiftStartLength; sb++) {
+			shiftStart[sb] = shiftStart[sb] + shiftSpeed;
+		}
 	}
 
 	// Initialize MaxMatrix
@@ -83,11 +88,6 @@ class SlotCylinder {
 		shiftStartPosition = 0;
 
 		isRolling = true;
-
-		// set right speed based on actual shiftspeed
-		for (int sb = 0; sb < shiftStartLength; sb++) {
-			shiftStart[sb] = shiftStart[sb] + shiftSpeed;
-		}
 
 		for (int mainCount = 0; mainCount < shiftCount; mainCount++) { // shift x times
 
@@ -145,34 +145,8 @@ void setup() {
 
 void loop() {
 
-		delay(6000);
 
 		cylinder1.roll(10);
-		cylinder2.roll(17);
 
-		Serial.print("CYL1: ");
-		Serial.println(cylinder1.getPosition());
-
-		delay(3000);
-
-		cylinder1.roll(6);
-		cylinder2.roll(10);
-
-		Serial.print("CYL1: ");
-		Serial.println(cylinder1.getPosition());
-
-		delay(3000);
-
-		cylinder1.roll(33);
-		cylinder2.roll(38);
-
-		Serial.print("CYL1: ");
-		Serial.println(cylinder1.getPosition());
-
-
-
-    while(1){
-        /* endless stop */
-    }
 
 }
