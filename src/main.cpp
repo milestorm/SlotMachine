@@ -244,25 +244,5 @@ void loop() {
 		cylinder1.update();
 		cylinder2.update();
 
-		//cylinder1.roll(10);
-
-		//delay(6000);
-
-
-		//cylinder1.generateShiftArray(5);
-		//cylinder2.generateShiftArray(13);
-
-		//cylinder1.fakeRoll();
-		//cylinder2.fakeRoll();
-/*
-		while(1){
-			cylinder1.update();
-			cylinder1.fakeRoll();
-
-			cylinder2.update();
-			cylinder2.fakeRoll();
-		}
-*/
-
 
 }
