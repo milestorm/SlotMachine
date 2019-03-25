@@ -2,6 +2,7 @@
 #include <MaxMatrix.h>
 #include <avdweb_VirtualDelay.h>
 #include <avr/pgmspace.h>
+#include <OneButton.h>
 
 // Symbol definitions
 PROGMEM const unsigned char CH[] = {
@@ -117,7 +118,7 @@ class SlotCylinder {
 		int updDelay;
 		if (isRolling == true) {
 			updDelay = *(rollingArray + rollingArrayIndex);
-			if (updDelay > *(rollingArray + 0)) {
+			if (updDelay > *(rollingArray + 0) || (updDelay < 0)) {
 				updDelay = shiftSpeed;
 			}
 
@@ -218,7 +219,62 @@ class SlotCylinder {
 SlotCylinder cylinder1(cylinderSymbols1, 20, 25);
 SlotCylinder cylinder2(cylinderSymbols1, 20, 25);
 
-int buttPushed = false;
+OneButton startButton(A1, true);
+
+bool slotRunning = false;
+int credit = 100;
+int bet = 10;
+
+
+
+
+void startButtonFn() {
+	// random generate shift array length within some boundaries.
+	// 1st cylinder shortest, than 2nd and 3rd longest
+	cylinder1.generateShiftArray(5);
+	cylinder2.generateShiftArray(6);
+	cylinder1.fakeRoll();
+	cylinder2.fakeRoll();
+
+	slotRunning = true;
+}
+
+void slotWatch() {
+	if (slotRunning == true) {
+		if (cylinder1.isCylinderRolling() == false && cylinder2.isCylinderRolling() == false) {
+			Serial.println("###############");
+			Serial.print("CYL 1: ");
+			Serial.println(cylinder1.getPosition());
+			Serial.print("CYL 2: ");
+			Serial.println(cylinder2.getPosition());
+			Serial.println("---------------");
+			/* TODO
+				- jokers.
+				- first two symbols pays as 0.5 bet MAYBE
+				- if credit = 0 game over, insert coin
+			*/
+
+			if (cylinder1.getPosition() == cylinder2.getPosition()) {
+				// WIN
+				credit += (symbolValue[cylinder1.getPosition()] * bet);
+				Serial.println("*** WINNER ***");
+				Serial.print("credit: ");
+				Serial.println(credit);
+			} else {
+				// LOSE
+				credit -= bet;
+				Serial.println("-_- LOSER -_-");
+				Serial.print("credit: ");
+				Serial.println(credit);
+			}
+
+
+
+
+			slotRunning = false;
+		}
+	}
+}
 
 void setup() {
     Serial.begin(115200);
@@ -227,22 +283,17 @@ void setup() {
 		cylinder1.initMatrix(4, 3, 2);
 		cylinder2.initMatrix(5, 6, 7);
 
-		pinMode(10,INPUT_PULLUP);
+		startButton.attachClick(startButtonFn);
 
 }
 
 void loop() {
-		int sensorVal = digitalRead(10);
 
-		if (sensorVal == LOW) {
-			cylinder1.generateShiftArray(5);
-			cylinder2.generateShiftArray(6);
-			cylinder1.fakeRoll();
-			cylinder2.fakeRoll();
-		}
+		startButton.tick();
 
 		cylinder1.update();
 		cylinder2.update();
 
+		slotWatch();
 
 }
