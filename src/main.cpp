@@ -114,9 +114,14 @@ class SlotCylinder {
 	}
 
 	void update() {
+		int updDelay;
 		if (isRolling == true) {
+			updDelay = *(rollingArray + rollingArrayIndex);
+			if (updDelay > *(rollingArray + 0)) {
+				updDelay = shiftSpeed;
+			}
 
-			rollDelay.start( *(rollingArray + rollingArrayIndex) );
+			rollDelay.start(updDelay);
 			if (rollDelay.elapsed()) {
 				Serial.print("TICK ");
 				Serial.print(*(rollingArray + rollingArrayIndex));
