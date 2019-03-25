@@ -218,28 +218,43 @@ class SlotCylinder {
 SlotCylinder cylinder1(cylinderSymbols1, 20, 25);
 SlotCylinder cylinder2(cylinderSymbols1, 20, 25);
 
+int buttPushed = false;
+
 void setup() {
     Serial.begin(115200);
 
 		// init display 8x8 matrix with DIN, CS, CLK
 		cylinder1.initMatrix(4, 3, 2);
 		cylinder2.initMatrix(5, 6, 7);
+
+		pinMode(10,INPUT_PULLUP);
+
 }
 
 void loop() {
+		int sensorVal = digitalRead(10);
 
+		if (sensorVal == LOW) {
+			cylinder1.generateShiftArray(5);
+			cylinder2.generateShiftArray(6);
+			cylinder1.fakeRoll();
+			cylinder2.fakeRoll();
+		}
+
+		cylinder1.update();
+		cylinder2.update();
 
 		//cylinder1.roll(10);
 
-		delay(6000);
+		//delay(6000);
 
 
-		cylinder1.generateShiftArray(4);
-		cylinder2.generateShiftArray(7);
+		//cylinder1.generateShiftArray(5);
+		//cylinder2.generateShiftArray(13);
 
-		cylinder1.fakeRoll();
-		cylinder2.fakeRoll();
-
+		//cylinder1.fakeRoll();
+		//cylinder2.fakeRoll();
+/*
 		while(1){
 			cylinder1.update();
 			cylinder1.fakeRoll();
@@ -247,7 +262,7 @@ void loop() {
 			cylinder2.update();
 			cylinder2.fakeRoll();
 		}
-
+*/
 
 
 }
