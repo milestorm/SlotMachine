@@ -42,11 +42,15 @@ class SlotCylinder {
 	int realShiftSpeed; // shift speed already with slow start
 	int shiftStart[18] = {150,149,145,140,132,123,113,101,88,75,62,49,38,27,18,10,5,1}; // slow start array. Like fade in
 	int shiftStartLength = 18; // length of shiftStart array. the slowing array.
-	int shiftStartPosition; // position for slow start
+	int shiftStartPosition = 0; // position for slow start
+
+	int *rollingArray = NULL;
+	int rollingArrayIndex = 0;
+	int rollingArrayLength = 0;
 
 	bool isRolling = false;
 
-	VirtualDelay rollDelay, rollDelay2; // initialize virtual delay
+	VirtualDelay rollDelay; // initialize virtual delay
 	MaxMatrix *p_dotMatrix;
 
 	//constructor
@@ -78,16 +82,92 @@ class SlotCylinder {
     p_dotMatrix->writeSprite(0, 0, startingPicture);
 	}
 
+	bool isCylinderRolling() {
+		return isRolling;
+	}
+
+	/**
+	 * Generates shifting array for tne roll
+	 */
+	void generateShiftArray(int _count) {
+		int count = _count * 9;
+		rollingArrayLength = count;
+
+		if (*rollingArray != NULL) {
+			Serial.println("deleting rollingArray");
+			delete rollingArray;
+		}
+
+		rollingArray = new int[count];
+
+		for (int i = 0; i < count; i++) {
+			// makes the starting speed slower
+			if (shiftStartPosition < shiftStartLength) {
+				rollingArray[i] = shiftStart[shiftStartPosition];
+			}	else {
+				rollingArray[i] = shiftSpeed;
+			}
+			shiftStartPosition++;
+		}
+
+		//return *rollingArray;
+	}
+
+	void update() {
+		if (isRolling == true) {
+
+			rollDelay.start( *(rollingArray + rollingArrayIndex) );
+			if (rollDelay.elapsed()) {
+				Serial.print("TICK ");
+				Serial.print(*(rollingArray + rollingArrayIndex));
+				Serial.print(" -- ");
+				Serial.print(rollingArrayIndex);
+				Serial.print(" : ");
+				Serial.println(*rollingArray);
+
+				// rolling has finished
+				if ((rollingArrayLength-1) < rollingArrayIndex) {
+					isRolling = false;
+					rollingArrayIndex = 0;
+					Serial.println("!!!! Finished rolling...");
+				} else {
+					if (rollingArrayIndex % 9 == 0) { // time to print symbol
+						Serial.println("### SYMBOL ###");
+						if (realIndex >= arrSize) { // endless shift thru the cylinder array
+							realIndex = realIndex - arrSize;
+						}
+						// display symbol to hidden place
+						memcpy_P(buffer, CH + 10 * p_cylinderArr[realIndex], 10);
+						p_dotMatrix->writeSprite(9, 0, buffer); // writes to 9th position because of 1px space
+						p_dotMatrix->setColumn(9 + buffer[0], 0);
+
+						realIndex++;
+					}
+
+					p_dotMatrix->shiftLeft(false, false);
+					rollingArrayIndex++;
+				}
+
+
+			}
+
+		}
+
+	}
+
+	void fakeRoll() {
+		isRolling = true;
+	}
+
 	/**
 	 * Rolls the cylinder
 	 * @param {int} _shiftCount how many symbols will be shifted
 	 */
 	void roll(int _shiftCount) {
+		isRolling = true;
 		shiftCount = _shiftCount;
 		startingIndex = realIndex;
 		shiftStartPosition = 0;
-
-		isRolling = true;
 
 		for (int mainCount = 0; mainCount < shiftCount; mainCount++) { // shift x times
 
@@ -117,9 +197,7 @@ class SlotCylinder {
 			realIndex++;
 
 		}
-
 		isRolling = false;
-
 	}
 
 	int getPosition() {
@@ -146,7 +224,25 @@ void setup() {
 void loop() {
 
 
-		cylinder1.roll(10);
+		//cylinder1.roll(10);
+
+		delay(6000);
+
+
+		cylinder1.generateShiftArray(4);
+		cylinder2.generateShiftArray(7);
+
+		cylinder1.fakeRoll();
+		cylinder2.fakeRoll();
+
+		while(1){
+			cylinder1.update();
+			cylinder1.fakeRoll();
+
+			cylinder2.update();
+			cylinder2.fakeRoll();
+		}
+
 
 
 }
