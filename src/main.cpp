@@ -83,12 +83,15 @@ class SlotCylinder {
     p_dotMatrix->writeSprite(0, 0, startingPicture);
 	}
 
+	/**
+	 * Returns if cylinder is rolling
+	 */
 	bool isCylinderRolling() {
 		return isRolling;
 	}
 
 	/**
-	 * Generates shifting array for tne roll
+	 * Generates shifting array for the roll
 	 */
 	void generateShiftArray(int _count) {
 		int count = _count * 9;
@@ -110,19 +113,21 @@ class SlotCylinder {
 			}
 			shiftStartPosition++;
 		}
-
-		//return *rollingArray;
 	}
 
+	/**
+	 * Updating function which rolls the symbol
+	 */
 	void update() {
 		int updDelay;
-		if (isRolling == true) {
+		if (isRolling == true) { // only if its rolling
+
 			updDelay = *(rollingArray + rollingArrayIndex);
 			if (updDelay > *(rollingArray + 0) || (updDelay < 0)) {
 				updDelay = shiftSpeed;
 			}
 
-			rollDelay.start(updDelay);
+			rollDelay.start(updDelay); // starts the roll
 			if (rollDelay.elapsed()) {
 				Serial.print("TICK ");
 				Serial.print(*(rollingArray + rollingArrayIndex));
@@ -150,62 +155,23 @@ class SlotCylinder {
 						realIndex++;
 					}
 
-					p_dotMatrix->shiftLeft(false, false);
+					p_dotMatrix->shiftLeft(false, false); // shift one line
 					rollingArrayIndex++;
 				}
-
-
 			}
-
 		}
-
 	}
 
-	void fakeRoll() {
+	/**
+	 * Start rolling the cylinder
+	 */
+	void roll() {
 		isRolling = true;
 	}
 
 	/**
-	 * Rolls the cylinder
-	 * @param {int} _shiftCount how many symbols will be shifted
+	 * Returns the symbol value in cylinder
 	 */
-	void roll(int _shiftCount) {
-		isRolling = true;
-		shiftCount = _shiftCount;
-		startingIndex = realIndex;
-		shiftStartPosition = 0;
-
-		for (int mainCount = 0; mainCount < shiftCount; mainCount++) { // shift x times
-
-			if (realIndex >= arrSize) { // endless shift thru the cylinder array
-				realIndex = realIndex - arrSize;
-			}
-
-			// display symbol to hidden place
-			memcpy_P(buffer, CH + 10 * p_cylinderArr[realIndex], 10);
-			p_dotMatrix->writeSprite(9, 0, buffer); // writes to 9th position because of 1px space
-			p_dotMatrix->setColumn(9 + buffer[0], 0);
-
-			for (int i = 0; i < buffer[0] + 1; i++) { // shift from hidden place
-				// makes the starting speed slower
-				if (shiftStartPosition < shiftStartLength) {
-					realShiftSpeed = shiftStart[shiftStartPosition];
-				}	else {
-					realShiftSpeed = shiftSpeed;
-				}
-
-				delay(realShiftSpeed); // REWRITE TO MILLIS!!!
-				p_dotMatrix->shiftLeft(false, false);
-
-				shiftStartPosition++;
-			}
-
-			realIndex++;
-
-		}
-		isRolling = false;
-	}
-
 	int getPosition() {
 		return p_cylinderArr[realIndex - 1];
 	}
@@ -215,30 +181,37 @@ class SlotCylinder {
 
 
 
-
+// initialize all cylinders
 SlotCylinder cylinder1(cylinderSymbols1, 20, 25);
 SlotCylinder cylinder2(cylinderSymbols1, 20, 25);
 
+// initialize buttons
 OneButton startButton(A1, true);
 
+// initialize main variables
 bool slotRunning = false;
 int credit = 100;
 int bet = 10;
 
 
 
-
+/**
+ * Push the start button
+ */
 void startButtonFn() {
 	// random generate shift array length within some boundaries.
 	// 1st cylinder shortest, than 2nd and 3rd longest
 	cylinder1.generateShiftArray(5);
 	cylinder2.generateShiftArray(6);
-	cylinder1.fakeRoll();
-	cylinder2.fakeRoll();
+	cylinder1.roll();
+	cylinder2.roll();
 
 	slotRunning = true;
 }
 
+/**
+ * Watcher for the slot machine
+ */
 void slotWatch() {
 	if (slotRunning == true) {
 		if (cylinder1.isCylinderRolling() == false && cylinder2.isCylinderRolling() == false) {
@@ -254,6 +227,7 @@ void slotWatch() {
 				- if credit = 0 game over, insert coin
 			*/
 
+			// all symbols are the same
 			if (cylinder1.getPosition() == cylinder2.getPosition()) {
 				// WIN
 				credit += (symbolValue[cylinder1.getPosition()] * bet);
@@ -268,9 +242,6 @@ void slotWatch() {
 				Serial.println(credit);
 			}
 
-
-
-
 			slotRunning = false;
 		}
 	}
@@ -283,17 +254,21 @@ void setup() {
 		cylinder1.initMatrix(4, 3, 2);
 		cylinder2.initMatrix(5, 6, 7);
 
+		// attach button to function
 		startButton.attachClick(startButtonFn);
 
 }
 
 void loop() {
 
+		// button watcher
 		startButton.tick();
 
+		// cylinder watcher
 		cylinder1.update();
 		cylinder2.update();
 
+		// slot watcher
 		slotWatch();
 
 }
