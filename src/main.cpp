@@ -3,6 +3,7 @@
 #include <avdweb_VirtualDelay.h>
 #include <avr/pgmspace.h>
 #include <OneButton.h>
+#include <LiquidCrystal_I2C.h>
 
 // Symbol definitions
 PROGMEM const unsigned char CH[] = {
@@ -179,20 +180,23 @@ class SlotCylinder {
 
 };
 
+// -------------------------------------------------
 
+// initialize LCD
+LiquidCrystal_I2C lcd(0x27,20,4);
 
 // initialize all cylinders
 SlotCylinder cylinder1(cylinderSymbols1, 20, 25);
 SlotCylinder cylinder2(cylinderSymbols1, 20, 25);
+SlotCylinder cylinder3(cylinderSymbols1, 20, 25);
 
 // initialize buttons
-OneButton startButton(A1, true);
+OneButton startButton(A3, true);
 
 // initialize main variables
 bool slotRunning = false;
 int credit = 100;
 int bet = 10;
-
 
 
 /**
@@ -203,8 +207,10 @@ void startButtonFn() {
 	// 1st cylinder shortest, than 2nd and 3rd longest
 	cylinder1.generateShiftArray(5);
 	cylinder2.generateShiftArray(6);
+	cylinder3.generateShiftArray(7);
 	cylinder1.roll();
 	cylinder2.roll();
+	cylinder3.roll();
 
 	slotRunning = true;
 }
@@ -214,12 +220,14 @@ void startButtonFn() {
  */
 void slotWatch() {
 	if (slotRunning == true) {
-		if (cylinder1.isCylinderRolling() == false && cylinder2.isCylinderRolling() == false) {
+		if (cylinder1.isCylinderRolling() == false && cylinder2.isCylinderRolling() == false && cylinder3.isCylinderRolling() == false) {
 			Serial.println("###############");
 			Serial.print("CYL 1: ");
 			Serial.println(cylinder1.getPosition());
 			Serial.print("CYL 2: ");
 			Serial.println(cylinder2.getPosition());
+			Serial.print("CYL 3: ");
+			Serial.println(cylinder3.getPosition());
 			Serial.println("---------------");
 			/* TODO
 				- jokers.
@@ -228,7 +236,7 @@ void slotWatch() {
 			*/
 
 			// all symbols are the same
-			if (cylinder1.getPosition() == cylinder2.getPosition()) {
+			if (cylinder1.getPosition() == cylinder2.getPosition() == cylinder3.getPosition()) {
 				// WIN
 				credit += (symbolValue[cylinder1.getPosition()] * bet);
 				Serial.println("*** WINNER ***");
@@ -250,9 +258,16 @@ void slotWatch() {
 void setup() {
     Serial.begin(115200);
 
+		// init LCD
+		lcd.init();
+		lcd.backlight();
+  	lcd.setCursor(0, 0);
+  	lcd.print("SLOT MACHiNE");
+
 		// init display 8x8 matrix with DIN, CS, CLK
-		cylinder1.initMatrix(4, 3, 2);
-		cylinder2.initMatrix(5, 6, 7);
+		cylinder1.initMatrix(4, 5, 6);
+		cylinder2.initMatrix(7, 8, 9);
+		cylinder3.initMatrix(14, 16, 10);
 
 		// attach button to function
 		startButton.attachClick(startButtonFn);
@@ -267,6 +282,7 @@ void loop() {
 		// cylinder watcher
 		cylinder1.update();
 		cylinder2.update();
+		cylinder3.update();
 
 		// slot watcher
 		slotWatch();
