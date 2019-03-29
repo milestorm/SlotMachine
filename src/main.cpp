@@ -180,10 +180,10 @@ class SlotCylinder {
 
 };
 
-// -------------------------------------------------
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-// initialize LCD
-LiquidCrystal_I2C lcd(0x27,20,4);
+// initialize LCD on I2C pins
+LiquidCrystal_I2C lcd(0x27,16,4);
 
 // initialize all cylinders
 SlotCylinder cylinder1(cylinderSymbols1, 20, 25);
@@ -191,28 +191,82 @@ SlotCylinder cylinder2(cylinderSymbols1, 20, 25);
 SlotCylinder cylinder3(cylinderSymbols1, 20, 25);
 
 // initialize buttons
-OneButton startButton(A3, true);
+OneButton startButton(A3, true); // Buttons can be on analog pins
 
 // initialize main variables
 bool slotRunning = false;
+VirtualDelay lcdDelay;
+
 int credit = 100;
 int bet = 10;
 
+
+
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+/**
+ * Makes array of numbers, which represents how many times each cylinder will shift
+ */
+int *randomizeArray() {
+	randomSeed(analogRead(A0)); // A0 must be free (dunno, maybe :))
+	long firstNumber = random(10, 25);
+	long secondNumber = random(10);
+	long thirdNumber = random(10);
+
+	secondNumber = firstNumber + secondNumber;
+	thirdNumber = secondNumber + thirdNumber;
+
+	static int arr[3] = {firstNumber, secondNumber, thirdNumber};
+
+	return arr;
+}
 
 /**
  * Push the start button
  */
 void startButtonFn() {
-	// random generate shift array length within some boundaries.
-	// 1st cylinder shortest, than 2nd and 3rd longest
-	cylinder1.generateShiftArray(5);
-	cylinder2.generateShiftArray(6);
-	cylinder3.generateShiftArray(7);
-	cylinder1.roll();
-	cylinder2.roll();
-	cylinder3.roll();
+	if (credit >= bet) { // start only if player have credit
+		int *rndArr = randomizeArray();
 
-	slotRunning = true;
+		cylinder1.generateShiftArray(rndArr[0]);
+		cylinder2.generateShiftArray(rndArr[1]);
+		cylinder3.generateShiftArray(rndArr[2]);
+		cylinder1.roll();
+		cylinder2.roll();
+		cylinder3.roll();
+
+		slotRunning = true;
+	} else {
+		// make deep beep sound or something error-like
+	}
+}
+
+/**
+ * Prints label and value to LCD. Lines are defined from 0 to 1
+ */
+void printNumberWithLabelToLCD(char *label, int value, int valueStartingPosition, int line = 0) {
+	char buffer[50];
+
+	lcd.setCursor(0, line);
+  lcd.print(label);
+	lcd.setCursor(valueStartingPosition, line);
+
+	// i know this is messy piece of s**ty code, deal with it B-). I don't wanna talk about it!!!
+	if (value >= 0 && value < 10) {
+		sprintf(buffer, "%s%d     ", label, value);
+	} else if (value >= 10 && value < 100) {
+		sprintf(buffer, "%s%d    ", label, value);
+	} else if (value >= 100 && value < 1000) {
+		sprintf(buffer, "%s%d   ", label, value);
+	} else if (value >= 1000 && value < 10000) {
+		sprintf(buffer, "%s%d  ", label, value);
+	} else if (value >= 10000 && value < 100000) {
+		sprintf(buffer, "%s%d ", label, value);
+	} else if (value >= 100000 && value < 1000000) {
+		sprintf(buffer, "%s%d", label, value);
+	}
+
+	lcd.print(buffer);
 }
 
 /**
@@ -220,7 +274,11 @@ void startButtonFn() {
  */
 void slotWatch() {
 	if (slotRunning == true) {
+		// cylinders are rolling
+
 		if (cylinder1.isCylinderRolling() == false && cylinder2.isCylinderRolling() == false && cylinder3.isCylinderRolling() == false) {
+			// all cylinders stopped
+
 			Serial.println("###############");
 			Serial.print("CYL 1: ");
 			Serial.println(cylinder1.getPosition());
@@ -239,16 +297,27 @@ void slotWatch() {
 			if (cylinder1.getPosition() == cylinder2.getPosition() == cylinder3.getPosition()) {
 				// WIN
 				credit += (symbolValue[cylinder1.getPosition()] * bet);
+
 				Serial.println("*** WINNER ***");
 				Serial.print("credit: ");
 				Serial.println(credit);
 			} else {
 				// LOSE
 				credit -= bet;
-				Serial.println("-_- LOSER -_-");
+
+				if (credit <= 0) {
+					Serial.println("!!! GAME OVER !!!");
+					credit = 0;
+				} else {
+					Serial.println("-_- LOSER -_-");
+				}
+
 				Serial.print("credit: ");
 				Serial.println(credit);
 			}
+
+			// update credit info
+			printNumberWithLabelToLCD(" credit: ", credit, 9, 1);
 
 			slotRunning = false;
 		}
@@ -262,7 +331,9 @@ void setup() {
 		lcd.init();
 		lcd.backlight();
   	lcd.setCursor(0, 0);
-  	lcd.print("SLOT MACHiNE");
+  	lcd.print("  SL0T MACHiNE  ");
+		lcd.setCursor(0, 1);
+  	lcd.print("  iNSERT  C0iN  ");
 
 		// init display 8x8 matrix with DIN, CS, CLK
 		cylinder1.initMatrix(4, 5, 6);
