@@ -23,9 +23,9 @@ PROGMEM const unsigned char CH[] = {
 int symbolValue[10] = {4, 4, 8, 8, 12, 16, 20, 30, 40, 75};
 
 // Cylinder definitions
-int cylinderSymbols1[22] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 7, 7, 5, 3, 4, 5, 3, 5, 8, 2, 4};
-int cylinderSymbols2[22] = {2, 4, 2, 1, 4, 5, 6, 7, 7, 4, 1, 4, 5, 1, 3, 9, 0, 2, 4, 8, 0, 8};
-int cylinderSymbols3[22] = {0, 1, 4, 3, 6, 9, 6, 5, 8, 4, 9, 6, 3, 8, 2, 0, 1, 3, 0, 2, 3, 2};
+int cylinderSymbols1[22] = {0, 1, 5, 3, 4, 9, 2, 7, 8, 9, 0, 7, 7, 9, 3, 4, 5, 3, 9, 8, 2, 4};
+int cylinderSymbols2[22] = {2, 4, 2, 1, 4, 5, 6, 9, 7, 4, 1, 4, 5, 1, 3, 9, 0, 2, 4, 8, 0, 8};
+int cylinderSymbols3[22] = {4, 1, 4, 3, 0, 9, 6, 0, 9, 4, 9, 6, 3, 8, 2, 4, 1, 0, 4, 5, 3, 2};
 
 
 byte startingPicture[] = {8, 8, B10000001, B01000010, B00100100, B00011000, B00011000, B00100100, B01000010, B10000001};
@@ -132,12 +132,14 @@ class SlotCylinder {
 
 			rollDelay.start(updDelay); // starts the roll
 			if (rollDelay.elapsed()) {
+				/*
 				Serial.print("TICK ");
 				Serial.print(*(rollingArray + rollingArrayIndex));
 				Serial.print(" -- ");
 				Serial.print(rollingArrayIndex);
 				Serial.print(" : ");
 				Serial.println(*rollingArray);
+				*/
 
 				// rolling has finished
 				if ((rollingArrayLength-1) < rollingArrayIndex) {
@@ -146,7 +148,7 @@ class SlotCylinder {
 					Serial.println("!!!! Finished rolling...");
 				} else {
 					if (rollingArrayIndex % 9 == 0) { // time to print symbol
-						Serial.println("### SYMBOL ###");
+						//Serial.println("### SYMBOL ###");
 						if (realIndex >= arrSize) { // endless shift thru the cylinder array
 							realIndex = realIndex - arrSize;
 						}
@@ -228,12 +230,12 @@ int *randomizeArray() {
  * Push the start button
  */
 void startButtonFn() {
-	if (credit >= bet) { // start only if player have credit
+	if (credit >= bet && slotRunning == false) { // start only if player have credit and reels dont rotate
 		int *rndArr = randomizeArray();
 
-		cylinder1.generateShiftArray(rndArr[0]);
-		cylinder2.generateShiftArray(rndArr[1]);
-		cylinder3.generateShiftArray(rndArr[2]);
+		cylinder1.generateShiftArray(7);
+		cylinder2.generateShiftArray(8);
+		cylinder3.generateShiftArray(9);
 		cylinder1.roll();
 		cylinder2.roll();
 		cylinder3.roll();
@@ -250,25 +252,22 @@ void startButtonFn() {
 void printNumberWithLabelToLCD(char *label, int value, int valueStartingPosition, int line = 0) {
 	char buffer[50];
 
-	lcd.setCursor(0, line);
-  lcd.print(label);
-	lcd.setCursor(valueStartingPosition, line);
-
 	// i know this is messy piece of s**ty code, deal with it B-). I don't wanna talk about it!!!
 	if (value >= 0 && value < 10) {
-		sprintf(buffer, "%s%d     ", label, value);
+		snprintf(buffer, 50, "%s%u     ", label, value);
 	} else if (value >= 10 && value < 100) {
-		sprintf(buffer, "%s%d    ", label, value);
+		snprintf(buffer, 50, "%s%u    ", label, value);
 	} else if (value >= 100 && value < 1000) {
-		sprintf(buffer, "%s%d   ", label, value);
+		snprintf(buffer, 50, "%s%u   ", label, value);
 	} else if (value >= 1000 && value < 10000) {
-		sprintf(buffer, "%s%d  ", label, value);
+		snprintf(buffer, 50, "%s%u  ", label, value);
 	} else if (value >= 10000 && value < 100000) {
-		sprintf(buffer, "%s%d ", label, value);
+		snprintf(buffer, 50, "%s%u ", label, value);
 	} else if (value >= 100000 && value < 1000000) {
-		sprintf(buffer, "%s%d", label, value);
+		snprintf(buffer, 50, "%s%u", label, value);
 	}
 
+	lcd.setCursor(0, line);
 	lcd.print(buffer);
 }
 
@@ -295,7 +294,10 @@ void slotWatch() {
 			*/
 
 			// all symbols are the same
-			if (winner == false && (cylinder1.getPosition() == cylinder2.getPosition() == cylinder3.getPosition())) {
+			if (winner == false &&
+					 (cylinder1.getPosition() == cylinder2.getPosition() &&
+			      cylinder2.getPosition() == cylinder3.getPosition())
+				) {
 				// WIN
 				credit += (symbolValue[cylinder1.getPosition()] * bet);
 				winner = true;
@@ -310,11 +312,11 @@ void slotWatch() {
 				 x | x | J
 				 x | J | J
 			*/
-			if (winner == false && bet >= 10 &&
-					(cylinder2.getPosition() == 9 && cylinder1.getPosition() == cylinder3.getPosition()) ||
+			if (winner == false && (bet >= 10 &&
+					((cylinder2.getPosition() == 9 && cylinder1.getPosition() == cylinder3.getPosition()) ||
 					(cylinder3.getPosition() == 9 && cylinder1.getPosition() == cylinder2.getPosition()) ||
 					(cylinder2.getPosition() == 9 && cylinder3.getPosition() == 9)
-			) {
+			))) {
 				// WIN
 				credit += (symbolValue[cylinder1.getPosition()] * bet);
 				winner = true;
@@ -340,7 +342,7 @@ void slotWatch() {
 			}
 
 			// update credit info
-			printNumberWithLabelToLCD(" credit: ", credit, 9, 1);
+			printNumberWithLabelToLCD(" credit: ", credit, 8, 1);
 
 			slotRunning = false;
 			winner = false;
