@@ -18,3 +18,7 @@ Library for 8x8 LED matrix with MAX7219 chip
 ## OneButton
 Library for non-blocking control of buttons
 [Library github](https://github.com/mathertel/OneButton)
+
+## EasyBuzzer
+Library for non-blocking tone
+[Library github](https://github.com/evert-arias/EasyBuzzer)
