@@ -44,11 +44,12 @@ class SlotCylinder {
 
 	int realIndex = 0; // real index of position in cylinder
 	int realShiftSpeed; // shift speed already with slow start
-	int shiftStart[18] = {150,149,145,140,132,123,113,101,88,75,62,49,38,27,18,10,5,1}; // slow start array. Like fade in
+	//int shiftStart[18] = {75,74,73,70,66,62,56,50,44,38,31,25,19,13,9,5,2,1}; // slow start array. Like fade in
+	int shiftStart[18] = {50,50,48,47,44,41,38,34,29,25,21,16,13,9,6,3,2,1};
 	int shiftStartLength = 18; // length of shiftStart array. the slowing array.
 	int shiftStartPosition = 0; // position for slow start
 
-	int *rollingArray = NULL;
+	int *rollingArray = {nullptr};
 	int rollingArrayIndex = 0;
 	int rollingArrayLength = 0;
 
@@ -99,23 +100,23 @@ class SlotCylinder {
 	void generateShiftArray(int _count) {
 		int count = _count * 9;
 		rollingArrayLength = count;
+		int *myArray;
 
-		if (*rollingArray != NULL) {
-			Serial.println("deleting rollingArray");
-			delete rollingArray;
-		}
-
-		rollingArray = new int[count];
+		myArray = new int[count];
 
 		for (int i = 0; i < count; i++) {
 			// makes the starting speed slower
 			if (shiftStartPosition < shiftStartLength) {
-				rollingArray[i] = shiftStart[shiftStartPosition];
+				myArray[i] = shiftStart[shiftStartPosition];
 			}	else {
-				rollingArray[i] = shiftSpeed;
+				myArray[i] = shiftSpeed;
 			}
 			shiftStartPosition++;
 		}
+		shiftStartPosition = 0; // reset position
+
+		rollingArray = myArray;
+		delete [] myArray;
 	}
 
 	/**
@@ -126,9 +127,6 @@ class SlotCylinder {
 		if (isRolling == true) { // only if its rolling
 
 			updDelay = *(rollingArray + rollingArrayIndex);
-			if (updDelay > *(rollingArray + 0) || (updDelay < 0)) {
-				updDelay = shiftSpeed;
-			}
 
 			rollDelay.start(updDelay); // starts the roll
 			if (rollDelay.elapsed()) {
@@ -138,7 +136,9 @@ class SlotCylinder {
 				Serial.print(" -- ");
 				Serial.print(rollingArrayIndex);
 				Serial.print(" : ");
-				Serial.println(*rollingArray);
+				Serial.print(*rollingArray);
+				Serial.print(" | ");
+				Serial.println(updDelay);
 				*/
 
 				// rolling has finished
@@ -190,9 +190,9 @@ class SlotCylinder {
 LiquidCrystal_I2C lcd(0x27,16,4);
 
 // initialize all cylinders
-SlotCylinder cylinder1(cylinderSymbols1, 22, 25);
-SlotCylinder cylinder2(cylinderSymbols2, 22, 25);
-SlotCylinder cylinder3(cylinderSymbols3, 22, 25);
+SlotCylinder cylinder1(cylinderSymbols1, 22, 15);
+SlotCylinder cylinder2(cylinderSymbols2, 22, 15);
+SlotCylinder cylinder3(cylinderSymbols3, 22, 15);
 
 // initialize buttons
 OneButton startButton(A3, true); // Buttons can be on analog pins
@@ -214,9 +214,9 @@ int bet = 10;
  */
 int *randomizeArray() {
 	randomSeed(analogRead(A0)); // A0 must be free (dunno, maybe :))
-	long firstNumber = random(10, 25);
-	long secondNumber = random(10);
-	long thirdNumber = random(10);
+	int firstNumber = random(10, 25);
+	int secondNumber = random(10);
+	int thirdNumber = random(10);
 
 	secondNumber = firstNumber + secondNumber;
 	thirdNumber = secondNumber + thirdNumber;
@@ -231,11 +231,23 @@ int *randomizeArray() {
  */
 void startButtonFn() {
 	if (credit >= bet && slotRunning == false) { // start only if player have credit and reels dont rotate
-		int *rndArr = randomizeArray();
+		//int *rndArr = randomizeArray();
+		randomSeed(analogRead(A0)); // A0 must be free (dunno, maybe :))
+		int firstNumber = random(10, 25);
+		int secondNumber = random(10);
+		int thirdNumber = random(10);
 
-		cylinder1.generateShiftArray(7);
-		cylinder2.generateShiftArray(8);
-		cylinder3.generateShiftArray(9);
+		secondNumber = firstNumber + secondNumber;
+		thirdNumber = secondNumber + thirdNumber;
+
+		Serial.println("RND: ");
+		Serial.println(firstNumber);
+		Serial.println(secondNumber);
+		Serial.println(thirdNumber);
+
+		cylinder1.generateShiftArray(15);
+		cylinder2.generateShiftArray(secondNumber);
+		cylinder3.generateShiftArray(thirdNumber);
 		cylinder1.roll();
 		cylinder2.roll();
 		cylinder3.roll();
