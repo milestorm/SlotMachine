@@ -4,6 +4,7 @@
 #include <avr/pgmspace.h>
 #include <OneButton.h>
 #include <LiquidCrystal_I2C.h>
+#include <EasyBuzzer.h>
 
 // Symbol definitions
 PROGMEM const unsigned char CH[] = {
@@ -127,24 +128,30 @@ class SlotCylinder {
 		if (isRolling == true) { // only if its rolling
 
 			updDelay = *(rollingArray + rollingArrayIndex);
+			if (updDelay < 0 || (updDelay > *(rollingArray + 1))) {
+				updDelay = *(rollingArray + (rollingArrayIndex - 1));
+			}
 
 			rollDelay.start(updDelay); // starts the roll
 			if (rollDelay.elapsed()) {
-				/*
+
 				Serial.print("TICK ");
 				Serial.print(*(rollingArray + rollingArrayIndex));
 				Serial.print(" -- ");
 				Serial.print(rollingArrayIndex);
-				Serial.print(" : ");
-				Serial.print(*rollingArray);
-				Serial.print(" | ");
+				Serial.print(" of ");
+				Serial.print(rollingArrayLength);
+				Serial.print(" | delay: ");
 				Serial.println(updDelay);
-				*/
+
 
 				// rolling has finished
 				if ((rollingArrayLength-1) < rollingArrayIndex) {
 					isRolling = false;
 					rollingArrayIndex = 0;
+
+					EasyBuzzer.singleBeep(110, 40);
+
 					Serial.println("!!!! Finished rolling...");
 				} else {
 					if (rollingArrayIndex % 9 == 0) { // time to print symbol
@@ -202,7 +209,7 @@ bool slotRunning = false;
 bool winner = false;
 VirtualDelay lcdDelay;
 
-int credit = 100;
+int credit = 1000;
 int bet = 10;
 
 
@@ -212,6 +219,7 @@ int bet = 10;
 /**
  * Makes array of numbers, which represents how many times each cylinder will shift
  */
+/*
 int *randomizeArray() {
 	randomSeed(analogRead(A0)); // A0 must be free (dunno, maybe :))
 	int firstNumber = random(10, 25);
@@ -220,11 +228,15 @@ int *randomizeArray() {
 
 	secondNumber = firstNumber + secondNumber;
 	thirdNumber = secondNumber + thirdNumber;
+	if (secondNumber == thirdNumber) {
+		thirdNumber++;
+	}
 
 	static int arr[3] = {firstNumber, secondNumber, thirdNumber};
 
 	return arr;
 }
+*/
 
 /**
  * Push the start button
@@ -232,6 +244,7 @@ int *randomizeArray() {
 void startButtonFn() {
 	if (credit >= bet && slotRunning == false) { // start only if player have credit and reels dont rotate
 		//int *rndArr = randomizeArray();
+
 		randomSeed(analogRead(A0)); // A0 must be free (dunno, maybe :))
 		int firstNumber = random(10, 25);
 		int secondNumber = random(10);
@@ -239,6 +252,12 @@ void startButtonFn() {
 
 		secondNumber = firstNumber + secondNumber;
 		thirdNumber = secondNumber + thirdNumber;
+		if (firstNumber == secondNumber) {
+			secondNumber++;
+		}
+		if (secondNumber == thirdNumber) {
+			thirdNumber++;
+		}
 
 		Serial.println("RND: ");
 		Serial.println(firstNumber);
@@ -381,6 +400,10 @@ void setup() {
 		// attach button to function
 		startButton.attachClick(startButtonFn);
 
+		EasyBuzzer.setPin(15);
+
+		EasyBuzzer.singleBeep(880, 100);
+
 }
 
 void loop() {
@@ -395,5 +418,7 @@ void loop() {
 
 		// slot watcher
 		slotWatch();
+
+		EasyBuzzer.update();
 
 }
