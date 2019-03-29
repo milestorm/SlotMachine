@@ -23,7 +23,9 @@ PROGMEM const unsigned char CH[] = {
 int symbolValue[10] = {4, 4, 8, 8, 12, 16, 20, 30, 40, 75};
 
 // Cylinder definitions
-int cylinderSymbols1[20] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 7, 7, 5, 3, 4, 5, 3, 5, 8};
+int cylinderSymbols1[22] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 7, 7, 5, 3, 4, 5, 3, 5, 8, 2, 4};
+int cylinderSymbols2[22] = {2, 4, 2, 1, 4, 5, 6, 7, 7, 4, 1, 4, 5, 1, 3, 9, 0, 2, 4, 8, 0, 8};
+int cylinderSymbols3[22] = {0, 1, 4, 3, 6, 9, 6, 5, 8, 4, 9, 6, 3, 8, 2, 0, 1, 3, 0, 2, 3, 2};
 
 
 byte startingPicture[] = {8, 8, B10000001, B01000010, B00100100, B00011000, B00011000, B00100100, B01000010, B10000001};
@@ -60,7 +62,7 @@ class SlotCylinder {
 	/**
 	 * Constructor of SlotCylinder
 	 * @param {int} *_p_cylinderArr pointer to array
-	 * @param {int} _arrSize size of the array
+	 * @param {int} _arrSize size of the cylinderArr array
 	 * @param {int} _shiftSpeed speed of shift. Best is 25
 	 */
 	SlotCylinder(int *_p_cylinderArr, int _arrSize, int _shiftSpeed) {
@@ -186,15 +188,16 @@ class SlotCylinder {
 LiquidCrystal_I2C lcd(0x27,16,4);
 
 // initialize all cylinders
-SlotCylinder cylinder1(cylinderSymbols1, 20, 25);
-SlotCylinder cylinder2(cylinderSymbols1, 20, 25);
-SlotCylinder cylinder3(cylinderSymbols1, 20, 25);
+SlotCylinder cylinder1(cylinderSymbols1, 22, 25);
+SlotCylinder cylinder2(cylinderSymbols2, 22, 25);
+SlotCylinder cylinder3(cylinderSymbols3, 22, 25);
 
 // initialize buttons
 OneButton startButton(A3, true); // Buttons can be on analog pins
 
 // initialize main variables
 bool slotRunning = false;
+bool winner = false;
 VirtualDelay lcdDelay;
 
 int credit = 100;
@@ -270,7 +273,7 @@ void printNumberWithLabelToLCD(char *label, int value, int valueStartingPosition
 }
 
 /**
- * Watcher for the slot machine
+ * Watcher for the slot machine. Resolves, if you win or lose.
  */
 void slotWatch() {
 	if (slotRunning == true) {
@@ -288,20 +291,40 @@ void slotWatch() {
 			Serial.println(cylinder3.getPosition());
 			Serial.println("---------------");
 			/* TODO
-				- jokers.
 				- first two symbols pays as 0.5 bet MAYBE
-				- if credit = 0 game over, insert coin
 			*/
 
 			// all symbols are the same
-			if (cylinder1.getPosition() == cylinder2.getPosition() == cylinder3.getPosition()) {
+			if (winner == false && (cylinder1.getPosition() == cylinder2.getPosition() == cylinder3.getPosition())) {
 				// WIN
 				credit += (symbolValue[cylinder1.getPosition()] * bet);
+				winner = true;
 
 				Serial.println("*** WINNER ***");
 				Serial.print("credit: ");
 				Serial.println(credit);
-			} else {
+			}
+
+			/* JOKERS: If bet > 10, joker symbol (9) act as any symbol, but only for 2nd and 3rd position. First symbol must be different from joker.
+			   x | J | x
+				 x | x | J
+				 x | J | J
+			*/
+			if (winner == false && bet >= 10 &&
+					(cylinder2.getPosition() == 9 && cylinder1.getPosition() == cylinder3.getPosition()) ||
+					(cylinder3.getPosition() == 9 && cylinder1.getPosition() == cylinder2.getPosition()) ||
+					(cylinder2.getPosition() == 9 && cylinder3.getPosition() == 9)
+			) {
+				// WIN
+				credit += (symbolValue[cylinder1.getPosition()] * bet);
+				winner = true;
+
+				Serial.println("*** WINNER WITH JOKERS ***");
+				Serial.print("credit: ");
+				Serial.println(credit);
+			}
+
+			if (winner == false) {
 				// LOSE
 				credit -= bet;
 
@@ -320,6 +343,7 @@ void slotWatch() {
 			printNumberWithLabelToLCD(" credit: ", credit, 9, 1);
 
 			slotRunning = false;
+			winner = false;
 		}
 	}
 }
