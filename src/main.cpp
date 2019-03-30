@@ -253,6 +253,9 @@ void printNumberWithLabelToLCD(char *label, int value, int valueStartingPosition
 void startButtonFn() {
 	if (credit >= bet && slotRunning == false) { // start only if player have credit and reels dont rotate
 		credit -= bet; // bets the money
+		lcd.setCursor(11, 0);
+		lcd.print("     ");
+		printNumberWithLabelToLCD("Bet: ", bet, 5, 0); // update bet info
 		printNumberWithLabelToLCD("Credit: ", credit, 8, 1); // update credit info
 
 		randomSeed(analogRead(A0)); // A0 must be free (dunno, maybe :))
