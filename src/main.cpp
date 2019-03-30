@@ -151,7 +151,8 @@ class SlotCylinder {
 					isRolling = false;
 					rollingArrayIndex = 0;
 
-					EasyBuzzer.singleBeep(110, 40);
+					EasyBuzzer.stopBeep();
+					EasyBuzzer.singleBeep(131, 40);
 
 					Serial.println("!!!! Finished rolling...");
 				} else {
@@ -210,10 +211,11 @@ bool slotRunning = false;
 bool winner = false;
 VirtualDelay lcdDelay;
 
-const char song_P[] PROGMEM = "PacMan:b=160:32b,32p,32b6,32p,32f#6,32p,32d#6,32p,32b6,32f#6,16p,16d#6,16p,32c6,32p,32c7,32p,32g6,32p,32e6,32p,32c7,32g6,16p,16e6,16p,32b,32p,32b6,32p,32f#6,32p,32d#6,32p,32b6,32f#6,16p,16d#6,16p,32d#6,32e6,32f6,32p,32f6,32f#6,32g6,32p,32g6,32g#6,32a6,32p,32b.6";
+const char songWinner[] PROGMEM = "winner:d=32:b=130:f5,c6,f5,c6,f5,c6,f5,c6,16f6";
+const char songGameOver[] PROGMEM = "gamovr:d=8:b=200:e5,b4,g4,8p,2e4";
 ProgmemPlayer player(15);
 
-int credit = 1000;
+int credit = 100;
 int bet = 10;
 
 
@@ -221,10 +223,37 @@ int bet = 10;
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 /**
+ * Prints label and value to LCD. Lines are defined from 0 to 1
+ */
+void printNumberWithLabelToLCD(char *label, int value, int valueStartingPosition, int line = 0) {
+	char buffer[50];
+
+	// i know this is messy piece of s**ty code, deal with it B-). I don't wanna talk about it!!!
+	if (value >= 0 && value < 10) {
+		snprintf(buffer, 50, "%s%u     ", label, value);
+	} else if (value >= 10 && value < 100) {
+		snprintf(buffer, 50, "%s%u    ", label, value);
+	} else if (value >= 100 && value < 1000) {
+		snprintf(buffer, 50, "%s%u   ", label, value);
+	} else if (value >= 1000 && value < 10000) {
+		snprintf(buffer, 50, "%s%u  ", label, value);
+	} else if (value >= 10000 && value < 100000) {
+		snprintf(buffer, 50, "%s%u ", label, value);
+	} else if (value >= 100000 && value < 1000000) {
+		snprintf(buffer, 50, "%s%u", label, value);
+	}
+
+	lcd.setCursor(0, line);
+	lcd.print(buffer);
+}
+
+/**
  * Push the start button
  */
 void startButtonFn() {
 	if (credit >= bet && slotRunning == false) { // start only if player have credit and reels dont rotate
+		credit -= bet; // bets the money
+		printNumberWithLabelToLCD("Credit: ", credit, 8, 1); // update credit info
 
 		randomSeed(analogRead(A0)); // A0 must be free (dunno, maybe :))
 		int firstNumber = random(10, 25);
@@ -258,29 +287,16 @@ void startButtonFn() {
 	}
 }
 
-/**
- * Prints label and value to LCD. Lines are defined from 0 to 1
- */
-void printNumberWithLabelToLCD(char *label, int value, int valueStartingPosition, int line = 0) {
-	char buffer[50];
+void playWinSong() {
+	EasyBuzzer.stopBeep(); // stops any beeps
+	player.setSong(songWinner);
+	player.finishSong(); // plays win song
+}
 
-	// i know this is messy piece of s**ty code, deal with it B-). I don't wanna talk about it!!!
-	if (value >= 0 && value < 10) {
-		snprintf(buffer, 50, "%s%u     ", label, value);
-	} else if (value >= 10 && value < 100) {
-		snprintf(buffer, 50, "%s%u    ", label, value);
-	} else if (value >= 100 && value < 1000) {
-		snprintf(buffer, 50, "%s%u   ", label, value);
-	} else if (value >= 1000 && value < 10000) {
-		snprintf(buffer, 50, "%s%u  ", label, value);
-	} else if (value >= 10000 && value < 100000) {
-		snprintf(buffer, 50, "%s%u ", label, value);
-	} else if (value >= 100000 && value < 1000000) {
-		snprintf(buffer, 50, "%s%u", label, value);
-	}
-
-	lcd.setCursor(0, line);
-	lcd.print(buffer);
+void playGameOverSong() {
+	EasyBuzzer.stopBeep(); // stops any beeps
+	player.setSong(songGameOver);
+	player.finishSong(); // plays gameover song
 }
 
 /**
@@ -311,15 +327,12 @@ void slotWatch() {
 			      cylinder2.getPosition() == cylinder3.getPosition())
 				) {
 				// WIN
+				playWinSong();
 				credit += (symbolValue[cylinder1.getPosition()] * bet);
 				winner = true;
-
-				Serial.println("*** WINNER ***");
-				Serial.print("credit: ");
-				Serial.println(credit);
 			}
 
-			/* JOKERS: If bet > 10, joker symbol (9) act as any symbol, but only for 2nd and 3rd position. First symbol must be different from joker.
+			/* JOKERS: If bet > 10, joker symbol (9) act as any symbol.
 			   x | J | x
 				 x | x | J
 				 x | J | J
@@ -330,21 +343,42 @@ void slotWatch() {
 					(cylinder2.getPosition() == 9 && cylinder3.getPosition() == 9)
 			))) {
 				// WIN
+				playWinSong();
 				credit += (symbolValue[cylinder1.getPosition()] * bet);
 				winner = true;
-
-				Serial.println("*** WINNER WITH JOKERS ***");
-				Serial.print("credit: ");
-				Serial.println(credit);
 			}
+			// J | x | J
+			if (winner == false && (bet >= 10 &&
+					((cylinder1.getPosition() == 9 && cylinder3.getPosition() == 9)
+			))) {
+				// WIN
+				playWinSong();
+				credit += (symbolValue[cylinder2.getPosition()] * bet);
+				winner = true;
+			}
+			/*
+				 J | J | x
+				 J | x | x
+			*/
+			if (winner == false && (bet >= 10 &&
+					((cylinder1.getPosition() == 9 && cylinder2.getPosition() == cylinder3.getPosition()) ||
+					(cylinder1.getPosition() == 9 && cylinder2.getPosition() == 9)
+			))) {
+				// WIN
+				playWinSong();
+				credit += (symbolValue[cylinder3.getPosition()] * bet);
+				winner = true;
+			}
+			// JOKERS end
 
 			if (winner == false) {
 				// LOSE
-				credit -= bet;
-
 				if (credit <= 0) {
-					Serial.println("!!! GAME OVER !!!");
+					playGameOverSong();
 					credit = 0;
+					lcd.setCursor(0, 0);
+					lcd.print("  iNSERT  C0iN  ");
+					Serial.println("!!! GAME OVER !!!");
 				} else {
 					Serial.println("-_- LOSER -_-");
 				}
@@ -354,7 +388,7 @@ void slotWatch() {
 			}
 
 			// update credit info
-			printNumberWithLabelToLCD(" credit: ", credit, 8, 1);
+			printNumberWithLabelToLCD("Credit: ", credit, 8, 1);
 
 			slotRunning = false;
 			winner = false;
@@ -383,11 +417,6 @@ void setup() {
 
 		// initialize easybuzzer
 		EasyBuzzer.setPin(15);
-
-		player.setSong(song_P);
-
-		player.finishSong();
-
 }
 
 void loop() {
