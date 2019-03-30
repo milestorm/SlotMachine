@@ -204,7 +204,8 @@ SlotCylinder cylinder2(cylinderSymbols2, 22, 15);
 SlotCylinder cylinder3(cylinderSymbols3, 22, 15);
 
 // initialize buttons
-OneButton startButton(A3, true); // Buttons can be on analog pins
+OneButton startButton(A2, true); // Buttons can be on analog pins
+OneButton betButton(A3, true);
 
 // initialize main variables
 bool slotRunning = false;
@@ -253,6 +254,9 @@ void printNumberWithLabelToLCD(char *label, int value, int valueStartingPosition
 void startButtonFn() {
 	if (credit >= bet && slotRunning == false) { // start only if player have credit and reels dont rotate
 		credit -= bet; // bets the money
+
+		digitalWrite(A1, LOW); // turns off the light on button
+
 		lcd.setCursor(11, 0);
 		lcd.print("     ");
 		printNumberWithLabelToLCD("Bet: ", bet, 5, 0); // update bet info
@@ -288,6 +292,10 @@ void startButtonFn() {
 	} else {
 		// make deep beep sound or something error-like
 	}
+}
+
+void betButtonFn() {
+
 }
 
 void playWinSong() {
@@ -393,6 +401,8 @@ void slotWatch() {
 			// update credit info
 			printNumberWithLabelToLCD("Credit: ", credit, 8, 1);
 
+			digitalWrite(A1, HIGH); // turns on the button light again
+
 			slotRunning = false;
 			winner = false;
 		}
@@ -417,9 +427,13 @@ void setup() {
 
 		// attach button to function
 		startButton.attachClick(startButtonFn);
+		betButton.attachClick(betButtonFn);
 
 		// initialize easybuzzer
 		EasyBuzzer.setPin(15);
+
+		pinMode(A1, OUTPUT);
+		digitalWrite(A1, HIGH);
 }
 
 void loop() {
