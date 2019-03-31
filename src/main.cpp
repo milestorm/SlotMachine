@@ -193,6 +193,65 @@ class SlotCylinder {
 
 };
 
+class Flasher {
+	int ledPin;      // the number of the LED pin
+	long OnTime;     // milliseconds of on-time
+	long OffTime;    // milliseconds of off-time
+	int ledState;    // ledState used to set the LED
+	unsigned long previousMillis;  	// will store last time LED was updated
+	bool updateFlshr = false; // global on/off
+
+  public:
+  Flasher(int pin, long on, long off) {
+		ledPin = pin;
+		pinMode(ledPin, OUTPUT);
+
+		OnTime = on;
+		OffTime = off;
+
+		ledState = LOW;
+		previousMillis = 0;
+  }
+
+  void update() {
+		if (updateFlshr == true) {
+			// check to see if it's time to change the state of the LED
+			unsigned long currentMillis = millis();
+
+			if ((ledState == HIGH) && (currentMillis - previousMillis >= OnTime)) {
+				ledState = LOW;  // Turn it off
+				previousMillis = currentMillis;  // Remember the time
+				digitalWrite(ledPin, ledState);  // Update the actual LED
+			}
+			else if ((ledState == LOW) && (currentMillis - previousMillis >= OffTime)) {
+				ledState = HIGH;  // turn it on
+				previousMillis = currentMillis;   // Remember the time
+				digitalWrite(ledPin, ledState);	  // Update the actual LED
+			}
+		}
+  }
+
+	void setInterval(long on, long off) {
+		OnTime = on;
+		OffTime = off;
+	}
+
+	void blinkOn() {
+		updateFlshr = true;
+	}
+
+	void permanentOn() {
+		updateFlshr = false;
+		digitalWrite(ledPin, HIGH);
+	}
+
+	void off() {
+		updateFlshr = false;
+		ledState = LOW;
+		digitalWrite(ledPin, LOW);
+	}
+};
+
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 // initialize LCD on I2C pins
@@ -205,6 +264,7 @@ SlotCylinder cylinder3(cylinderSymbols3, 22, 15);
 
 // initialize buttons
 OneButton startButton(A2, true); // Buttons can be on analog pins
+Flasher   startLed(A1, 300, 300); // set light to current button
 OneButton betButton(A3, true);
 
 // initialize main variables
@@ -255,7 +315,7 @@ void startButtonFn() {
 	if (credit >= bet && slotRunning == false) { // start only if player have credit and reels dont rotate
 		credit -= bet; // bets the money
 
-		digitalWrite(A1, LOW); // turns off the light on button
+		startLed.off(); // turns off the light on button
 
 		lcd.setCursor(11, 0);
 		lcd.print("     ");
@@ -389,6 +449,7 @@ void slotWatch() {
 					credit = 0;
 					lcd.setCursor(0, 0);
 					lcd.print("  iNSERT  C0iN  ");
+					startLed.off();
 					Serial.println("!!! GAME OVER !!!");
 				} else {
 					Serial.println("-_- LOSER -_-");
@@ -401,7 +462,7 @@ void slotWatch() {
 			// update credit info
 			printNumberWithLabelToLCD("Credit: ", credit, 8, 1);
 
-			digitalWrite(A1, HIGH); // turns on the button light again
+			startLed.blinkOn();
 
 			slotRunning = false;
 			winner = false;
@@ -432,8 +493,8 @@ void setup() {
 		// initialize easybuzzer
 		EasyBuzzer.setPin(15);
 
-		pinMode(A1, OUTPUT);
-		digitalWrite(A1, HIGH);
+		// blink start led
+		startLed.blinkOn();
 }
 
 void loop() {
@@ -448,6 +509,8 @@ void loop() {
 
 		// slot watcher
 		slotWatch();
+
+		startLed.update();
 
 		EasyBuzzer.update();
 
