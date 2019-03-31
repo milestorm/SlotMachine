@@ -29,7 +29,7 @@ int cylinderSymbols1[22] = {0, 1, 5, 3, 4, 9, 2, 7, 8, 9, 0, 7, 7, 9, 3, 4, 5, 3
 int cylinderSymbols2[22] = {2, 4, 2, 1, 4, 5, 6, 9, 7, 4, 1, 4, 5, 1, 3, 9, 0, 2, 4, 8, 0, 8};
 int cylinderSymbols3[22] = {4, 1, 4, 3, 0, 9, 6, 0, 9, 4, 9, 6, 3, 8, 2, 4, 1, 0, 4, 5, 3, 2};
 
-
+// starting picture of cylinder
 byte startingPicture[] = {8, 8, B10000001, B01000010, B00100100, B00011000, B00011000, B00100100, B01000010, B10000001};
 
 
@@ -193,6 +193,9 @@ class SlotCylinder {
 
 };
 
+/**
+ * Flashes or permanent turns on/off the LED connected to a pin
+ */
 class Flasher {
 	int ledPin;      // the number of the LED pin
 	long OnTime;     // milliseconds of on-time
@@ -272,13 +275,18 @@ bool slotRunning = false;
 bool winner = false;
 VirtualDelay lcdDelay;
 
+// songs definitons
 const char songWinner[] PROGMEM = "winner:d=32:b=130:f5,c6,f5,c6,f5,c6,f5,c6,16f6";
 const char songGameOver[] PROGMEM = "gamovr:d=8:b=200:e5,b4,g4,8p,2e4";
 ProgmemPlayer player(15);
 
+// credit and bets related stuff
 int credit = 100;
-int bet = 10;
 
+int bet = 1; // value of bet
+int betsArr[13] = {1, 2, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100}; // possible bets
+int betPos = 0; // position of bet in bet array
+int betLen = 13; // length of bet array
 
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -306,6 +314,18 @@ void printNumberWithLabelToLCD(char *label, int value, int valueStartingPosition
 
 	lcd.setCursor(0, line);
 	lcd.print(buffer);
+}
+
+void playWinSong() {
+	EasyBuzzer.stopBeep(); // stops any beeps
+	player.setSong(songWinner);
+	player.finishSong(); // plays win song
+}
+
+void playGameOverSong() {
+	EasyBuzzer.stopBeep(); // stops any beeps
+	player.setSong(songGameOver);
+	player.finishSong(); // plays gameover song
 }
 
 /**
@@ -355,19 +375,18 @@ void startButtonFn() {
 }
 
 void betButtonFn() {
+	betPos++;
+	if (betPos == betLen) {
+		betPos = 0;
+	}
+	bet = betsArr[betPos];
 
-}
+	lcd.setCursor(11, 0);
+	lcd.print("     ");
+	printNumberWithLabelToLCD("Bet: ", bet, 5, 0); // update bet info
 
-void playWinSong() {
-	EasyBuzzer.stopBeep(); // stops any beeps
-	player.setSong(songWinner);
-	player.finishSong(); // plays win song
-}
-
-void playGameOverSong() {
-	EasyBuzzer.stopBeep(); // stops any beeps
-	player.setSong(songGameOver);
-	player.finishSong(); // plays gameover song
+	EasyBuzzer.stopBeep();
+	EasyBuzzer.singleBeep(262, 40);
 }
 
 /**
@@ -466,7 +485,9 @@ void slotWatch() {
 			// update credit info
 			printNumberWithLabelToLCD("Credit: ", credit, 8, 1);
 
-			startLed.blinkOn();
+			if (credit > 0) {
+				startLed.blinkOn();
+			}
 
 			slotRunning = false;
 			winner = false;
@@ -505,17 +526,20 @@ void loop() {
 
 		// button watcher
 		startButton.tick();
+		betButton.tick();
 
 		// cylinder watcher
 		cylinder1.update();
 		cylinder2.update();
 		cylinder3.update();
 
-		// slot watcher
+		// slot game winning/losing watcher
 		slotWatch();
 
+		// LED watcher
 		startLed.update();
 
+		// sound watcher
 		EasyBuzzer.update();
 
 }
