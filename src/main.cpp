@@ -401,6 +401,7 @@ void slotWatch() {
 				playWinSong();
 				credit += (symbolValue[cylinder1.getPosition()] * bet);
 				winner = true;
+				Serial.println("*** WINNER ***");
 			}
 
 			/* JOKERS: If bet > 10, joker symbol (9) act as any symbol.
@@ -417,6 +418,7 @@ void slotWatch() {
 				playWinSong();
 				credit += (symbolValue[cylinder1.getPosition()] * bet);
 				winner = true;
+				Serial.println("*** WINNER with JOKERS ***");
 			}
 			// J | x | J
 			if (winner == false && (bet >= 10 &&
@@ -426,6 +428,7 @@ void slotWatch() {
 				playWinSong();
 				credit += (symbolValue[cylinder2.getPosition()] * bet);
 				winner = true;
+				Serial.println("*** WINNER with JOKERS ***");
 			}
 			/*
 				 J | J | x
@@ -439,6 +442,7 @@ void slotWatch() {
 				playWinSong();
 				credit += (symbolValue[cylinder3.getPosition()] * bet);
 				winner = true;
+				Serial.println("*** WINNER with JOKERS ***");
 			}
 			// JOKERS end
 
