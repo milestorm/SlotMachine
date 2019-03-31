@@ -175,7 +175,7 @@ class SlotCylinder {
 					rollingArrayIndex = 0;
 
 					EasyBuzzer.stopBeep();
-					EasyBuzzer.singleBeep(131, 40);
+					EasyBuzzer.singleBeep(131, 30);
 
 					Serial.println("!!!! Finished rolling...");
 				} else {
@@ -301,6 +301,7 @@ VirtualDelay lcdDelay;
 // songs definitons
 const char songWinner[] PROGMEM = "winner:d=32:b=130:f5,c6,f5,c6,f5,c6,f5,c6,16f6";
 const char songGameOver[] PROGMEM = "gamovr:d=8:b=200:e5,b4,g4,8p,2e4";
+const char songInsertCoin[] PROGMEM = "coin:d=16:b=140:e5,8e6";
 ProgmemPlayer player(BUZZER);
 
 // credit and bets related stuff
@@ -348,6 +349,12 @@ void playWinSong() {
 void playGameOverSong() {
 	EasyBuzzer.stopBeep(); // stops any beeps
 	player.setSong(songGameOver);
+	player.finishSong(); // plays gameover song
+}
+
+void playInsertCoinSong() {
+	EasyBuzzer.stopBeep(); // stops any beeps
+	player.setSong(songInsertCoin);
 	player.finishSong(); // plays gameover song
 }
 
@@ -519,6 +526,8 @@ void slotWatch() {
 		}
 	}
 }
+
+// =======================================================================
 
 void setup() {
     Serial.begin(115200);
