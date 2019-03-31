@@ -7,6 +7,29 @@
 #include <EasyBuzzer.h>
 #include <rtttl.h>
 
+// PINs definitions
+#define CYLINDER_1_DIN 4
+#define CYLINDER_1_CS  5
+#define CYLINDER_1_CLK 6
+
+#define CYLINDER_2_DIN 7
+#define CYLINDER_2_CS  8
+#define CYLINDER_2_CLK 9
+
+#define CYLINDER_3_DIN 14
+#define CYLINDER_3_CS  16
+#define CYLINDER_3_CLK 10
+
+#define BUZZER 15
+// set LCD to I2C pins. Arduino Leonardo Mini is  2: SDA, 3: SCL
+#define BUTTON_START A2
+#define BUTTON_BET A3
+
+#define LED_START A1
+//#define LED_BET A0
+
+// ============================================================
+
 // Symbol definitions
 PROGMEM const unsigned char CH[] = {
 8, 8, B00000110, B01101111, B11110110, B01100100, B00100100, B00101000, B00110000, B00100000, // 0: cherry
@@ -266,9 +289,9 @@ SlotCylinder cylinder2(cylinderSymbols2, 22, 15);
 SlotCylinder cylinder3(cylinderSymbols3, 22, 15);
 
 // initialize buttons
-OneButton startButton(A2, true); // Buttons can be on analog pins
-Flasher   startLed(A1, 300, 300); // set light to current button
-OneButton betButton(A3, true);
+OneButton startButton(BUTTON_START, true); // Buttons can be on analog pins
+Flasher   startLed(LED_START, 300, 300); // set light to current button
+OneButton betButton(BUTTON_BET, true);
 
 // initialize main variables
 bool slotRunning = false;
@@ -278,7 +301,7 @@ VirtualDelay lcdDelay;
 // songs definitons
 const char songWinner[] PROGMEM = "winner:d=32:b=130:f5,c6,f5,c6,f5,c6,f5,c6,16f6";
 const char songGameOver[] PROGMEM = "gamovr:d=8:b=200:e5,b4,g4,8p,2e4";
-ProgmemPlayer player(15);
+ProgmemPlayer player(BUZZER);
 
 // credit and bets related stuff
 int credit = 100;
@@ -375,18 +398,20 @@ void startButtonFn() {
 }
 
 void betButtonFn() {
-	betPos++;
-	if (betPos == betLen) {
-		betPos = 0;
+	if (slotRunning == false) { // only allowed to push when cylinders are not turning
+		betPos++;
+		if (betPos == betLen) { // scroll thru bet array
+			betPos = 0;
+		}
+		bet = betsArr[betPos];
+
+		lcd.setCursor(11, 0);
+		lcd.print("     ");
+		printNumberWithLabelToLCD("Bet: ", bet, 5, 0); // update bet info
+
+		EasyBuzzer.stopBeep();
+		EasyBuzzer.singleBeep(262, 40);
 	}
-	bet = betsArr[betPos];
-
-	lcd.setCursor(11, 0);
-	lcd.print("     ");
-	printNumberWithLabelToLCD("Bet: ", bet, 5, 0); // update bet info
-
-	EasyBuzzer.stopBeep();
-	EasyBuzzer.singleBeep(262, 40);
 }
 
 /**
@@ -507,16 +532,16 @@ void setup() {
   	lcd.print("  iNSERT  C0iN  ");
 
 		// init display 8x8 matrix with DIN, CS, CLK
-		cylinder1.initMatrix(4, 5, 6);
-		cylinder2.initMatrix(7, 8, 9);
-		cylinder3.initMatrix(14, 16, 10);
+		cylinder1.initMatrix(CYLINDER_1_DIN, CYLINDER_1_CS, CYLINDER_1_CLK);
+		cylinder2.initMatrix(CYLINDER_2_DIN, CYLINDER_2_CS, CYLINDER_2_CLK);
+		cylinder3.initMatrix(CYLINDER_3_DIN, CYLINDER_3_CS, CYLINDER_3_CLK);
 
 		// attach button to function
 		startButton.attachClick(startButtonFn);
 		betButton.attachClick(betButtonFn);
 
 		// initialize easybuzzer
-		EasyBuzzer.setPin(15);
+		EasyBuzzer.setPin(BUZZER);
 
 		// blink start led
 		startLed.blinkOn();
