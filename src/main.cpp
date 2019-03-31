@@ -24,6 +24,7 @@
 // set LCD to I2C pins. Arduino Leonardo Mini is  2: SDA, 3: SCL
 #define BUTTON_START A2
 #define BUTTON_BET A3
+#define COIN_INSERTER A0
 
 #define LED_START A1
 //#define LED_BET A0
@@ -293,6 +294,8 @@ OneButton startButton(BUTTON_START, true); // Buttons can be on analog pins
 Flasher   startLed(LED_START, 300, 300); // set light to current button
 OneButton betButton(BUTTON_BET, true);
 
+OneButton coinInserter(COIN_INSERTER, true);
+
 // initialize main variables
 bool slotRunning = false;
 bool winner = false;
@@ -305,7 +308,7 @@ const char songInsertCoin[] PROGMEM = "coin:d=16:b=140:e5,8e6";
 ProgmemPlayer player(BUZZER);
 
 // credit and bets related stuff
-int credit = 100;
+int credit = 0;
 
 int bet = 1; // value of bet
 int betsArr[13] = {1, 2, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100}; // possible bets
@@ -358,6 +361,12 @@ void playInsertCoinSong() {
 	player.finishSong(); // plays gameover song
 }
 
+void updateBetInfo() {
+	lcd.setCursor(11, 0);
+	lcd.print("     ");
+	printNumberWithLabelToLCD("Bet: ", bet, 5, 0); // update bet info
+}
+
 /**
  * Push the start button
  */
@@ -367,9 +376,7 @@ void startButtonFn() {
 
 		startLed.off(); // turns off the light on button
 
-		lcd.setCursor(11, 0);
-		lcd.print("     ");
-		printNumberWithLabelToLCD("Bet: ", bet, 5, 0); // update bet info
+		updateBetInfo();
 		printNumberWithLabelToLCD("Credit: ", credit, 8, 1); // update credit info
 
 		randomSeed(analogRead(A0)); // A0 must be free (dunno, maybe :))
@@ -412,12 +419,19 @@ void betButtonFn() {
 		}
 		bet = betsArr[betPos];
 
-		lcd.setCursor(11, 0);
-		lcd.print("     ");
-		printNumberWithLabelToLCD("Bet: ", bet, 5, 0); // update bet info
+		updateBetInfo();
 
 		EasyBuzzer.stopBeep();
 		EasyBuzzer.singleBeep(262, 40);
+	}
+}
+
+void coinInserterFn() {
+	if (slotRunning == false) {
+		credit = credit + 20;
+		updateBetInfo();
+		printNumberWithLabelToLCD("Credit: ", credit, 8, 1); // update credit info
+		playInsertCoinSong();
 	}
 }
 
@@ -502,7 +516,7 @@ void slotWatch() {
 				if (credit <= 0) {
 					playGameOverSong();
 					credit = 0;
-					lcd.setCursor(0, 0);
+					lcd.setCursor(0, 1);
 					lcd.print("  iNSERT  C0iN  ");
 					startLed.off();
 					Serial.println("!!! GAME OVER !!!");
@@ -514,10 +528,8 @@ void slotWatch() {
 				Serial.println(credit);
 			}
 
-			// update credit info
-			printNumberWithLabelToLCD("Credit: ", credit, 8, 1);
-
 			if (credit > 0) {
+				printNumberWithLabelToLCD("Credit: ", credit, 8, 1); // update credit info
 				startLed.blinkOn();
 			}
 
@@ -549,6 +561,9 @@ void setup() {
 		startButton.attachClick(startButtonFn);
 		betButton.attachClick(betButtonFn);
 
+		// attach coin inserter
+		coinInserter.attachClick(coinInserterFn);
+
 		// initialize easybuzzer
 		EasyBuzzer.setPin(BUZZER);
 
@@ -561,6 +576,7 @@ void loop() {
 		// button watcher
 		startButton.tick();
 		betButton.tick();
+		coinInserter.tick();
 
 		// cylinder watcher
 		cylinder1.update();
