@@ -343,24 +343,28 @@ void printNumberWithLabelToLCD(char *label, int value, int valueStartingPosition
 	lcd.print(buffer);
 }
 
+// plays song for winning
 void playWinSong() {
 	EasyBuzzer.stopBeep(); // stops any beeps
 	player.setSong(songWinner);
-	player.finishSong(); // plays win song
+	player.finishSong(); // plays song
 }
 
+// plays song for game over
 void playGameOverSong() {
-	EasyBuzzer.stopBeep(); // stops any beeps
+	EasyBuzzer.stopBeep();
 	player.setSong(songGameOver);
-	player.finishSong(); // plays gameover song
+	player.finishSong();
 }
 
+// plays song for inserting coin
 void playInsertCoinSong() {
-	EasyBuzzer.stopBeep(); // stops any beeps
+	EasyBuzzer.stopBeep();
 	player.setSong(songInsertCoin);
-	player.finishSong(); // plays gameover song
+	player.finishSong();
 }
 
+// update bet info in first line on LCD
 void updateBetInfo() {
 	lcd.setCursor(11, 0);
 	lcd.print("     ");
@@ -544,13 +548,11 @@ void slotWatch() {
 void setup() {
     Serial.begin(115200);
 
-		// init LCD
+		// init LCD. Shows bet and credits.
 		lcd.init();
 		lcd.backlight();
-  	lcd.setCursor(0, 0);
-  	lcd.print("  SL0T MACHiNE  ");
-		lcd.setCursor(0, 1);
-  	lcd.print("  iNSERT  C0iN  ");
+  	updateBetInfo();
+		printNumberWithLabelToLCD("Credit: ", credit, 8, 1);
 
 		// init display 8x8 matrix with DIN, CS, CLK
 		cylinder1.initMatrix(CYLINDER_1_DIN, CYLINDER_1_CS, CYLINDER_1_CLK);
