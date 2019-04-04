@@ -277,6 +277,10 @@ class Flasher {
 		ledState = LOW;
 		digitalWrite(ledPin, LOW);
 	}
+
+	bool isBlinking() {
+		return updateFlshr;
+	}
 };
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -432,10 +436,15 @@ void betButtonFn() {
 
 void coinInserterFn() {
 	if (slotRunning == false) {
+		Serial.println(coinInserter.getPressedTicks());
 		credit = credit + 20;
 		updateBetInfo();
 		printNumberWithLabelToLCD("Credit: ", credit, 8, 1); // update credit info
 		playInsertCoinSong();
+
+		if (startLed.isBlinking() == false) {
+			startLed.blinkOn();
+		}
 	}
 }
 
@@ -564,13 +573,14 @@ void setup() {
 		betButton.attachClick(betButtonFn);
 
 		// attach coin inserter
-		coinInserter.attachClick(coinInserterFn);
+		coinInserter.setDebounceTicks(2);
+		coinInserter.attachClick(coinInserterFn); 
 
 		// initialize easybuzzer
 		EasyBuzzer.setPin(BUZZER);
 
 		// blink start led
-		startLed.blinkOn();
+		// startLed.blinkOn();
 }
 
 void loop() {
