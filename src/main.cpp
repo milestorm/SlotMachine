@@ -16,20 +16,21 @@
 #define CYLINDER_2_CS  8
 #define CYLINDER_2_CLK 9
 
-#define CYLINDER_3_DIN 14
-#define CYLINDER_3_CS  16
-#define CYLINDER_3_CLK 10
+#define CYLINDER_3_DIN 15
+#define CYLINDER_3_CS  14
+#define CYLINDER_3_CLK 16
 
-#define BUZZER 15
+#define BUZZER 10
 // set LCD to I2C pins. Arduino Leonardo Mini is  2: SDA, 3: SCL
-#define BUTTON_START A2
-#define BUTTON_BET A3
-#define COIN_INSERTER A0
+#define BUTTON_START A1
+#define BUTTON_BET 0
 
-#define LED_START A1
-//#define LED_BET A0
+#define COIN_INSERTER 1
 
-#define ADC_SEED_PIN A7
+#define LED_START A0
+//#define LED_BET A3
+
+#define ADC_SEED_PIN A3
 
 // ============================================================
 
@@ -83,6 +84,8 @@ class SlotCylinder {
 
 	bool isRolling = false;
 
+	int updDelay;
+
 	VirtualDelay rollDelay; // initialize virtual delay
 	MaxMatrix *p_dotMatrix;
 
@@ -126,6 +129,7 @@ class SlotCylinder {
 	 * Generates shifting array for the roll
 	 */
 	void generateShiftArray(int _count) {
+		// Serial.println("generating shift array...");
 		int count = _count * 9;
 		rollingArrayLength = count;
 		int *myArray;
@@ -143,33 +147,34 @@ class SlotCylinder {
 		}
 		shiftStartPosition = 0; // reset position
 
+		// Serial.println("almost there...");
 		rollingArray = myArray;
 		delete [] myArray;
+		// Serial.println("done.");
 	}
 
 	/**
 	 * Updating function which rolls the symbol
 	 */
 	void update() {
-		int updDelay;
 		if (isRolling == true) { // only if its rolling
 
 			updDelay = *(rollingArray + rollingArrayIndex);
 			if (updDelay < 0 || (updDelay > *(rollingArray + 1))) {
 				updDelay = *(rollingArray + (rollingArrayIndex - 1));
 			}
-
+			// Serial.println("ROLLING");
 			rollDelay.start(updDelay); // starts the roll
 			if (rollDelay.elapsed()) {
 
-				Serial.print("TICK ");
-				Serial.print(*(rollingArray + rollingArrayIndex));
-				Serial.print(" -- ");
-				Serial.print(rollingArrayIndex);
-				Serial.print(" of ");
-				Serial.print(rollingArrayLength);
-				Serial.print(" | delay: ");
-				Serial.println(updDelay);
+				// Serial.print("TICK ");
+				// Serial.print(*(rollingArray + rollingArrayIndex));
+				// Serial.print(" -- ");
+				// Serial.print(rollingArrayIndex);
+				// Serial.print(" of ");
+				// Serial.print(rollingArrayLength);
+				// Serial.print(" | delay: ");
+				// Serial.println(updDelay);
 
 
 				// rolling has finished
@@ -180,10 +185,10 @@ class SlotCylinder {
 					EasyBuzzer.stopBeep();
 					EasyBuzzer.singleBeep(131, 30);
 
-					Serial.println("!!!! Finished rolling...");
+					// Serial.println("!!!! Finished rolling...");
 				} else {
 					if (rollingArrayIndex % 9 == 0) { // time to print symbol
-						//Serial.println("### SYMBOL ###");
+						//// Serial.println("### SYMBOL ###");
 						if (realIndex >= arrSize) { // endless shift thru the cylinder array
 							realIndex = realIndex - arrSize;
 						}
@@ -224,8 +229,8 @@ class SlotCylinder {
  */
 class Flasher {
 	int ledPin;      // the number of the LED pin
-	long OnTime;     // milliseconds of on-time
-	long OffTime;    // milliseconds of off-time
+	unsigned long OnTime;     // milliseconds of on-time
+	unsigned long OffTime;    // milliseconds of off-time
 	int ledState;    // ledState used to set the LED
 	unsigned long previousMillis;  	// will store last time LED was updated
 	bool updateFlshr = false; // global on/off
@@ -327,7 +332,7 @@ int betLen = 13; // length of bet array
 /**
  * Prints label and value to LCD. Lines are defined from 0 to 1
  */
-void printNumberWithLabelToLCD(char *label, int value, int valueStartingPosition, int line = 0) {
+void printNumberWithLabelToLCD(const char *label, int value, int valueStartingPosition, int line = 0) {
 	char buffer[50];
 
 	// i know this is messy piece of s**ty code, deal with it B-). I don't wanna talk about it!!!
@@ -420,6 +425,8 @@ int randomGenerator(int min, int max) // range : [min, max)
 {
    static bool rndGenFirst = true;
    if (rndGenFirst) {
+		  // Serial.print("Using seed: ");
+		 	// Serial.println(get_seed(ADC_SEED_PIN));
       srandom(get_seed(ADC_SEED_PIN)); // seeding for the first time only!
       rndGenFirst = false;
    }
@@ -451,12 +458,12 @@ void startButtonFn() {
 			thirdNumber++;
 		}
 
-		Serial.println("RND: ");
-		Serial.println(firstNumber);
-		Serial.println(secondNumber);
-		Serial.println(thirdNumber);
+		// Serial.println("RND: ");
+		// Serial.println(firstNumber);
+		// Serial.println(secondNumber);
+		// Serial.println(thirdNumber);
 
-		cylinder1.generateShiftArray(15);
+		cylinder1.generateShiftArray(firstNumber);
 		cylinder2.generateShiftArray(secondNumber);
 		cylinder3.generateShiftArray(thirdNumber);
 		cylinder1.roll();
@@ -486,7 +493,7 @@ void betButtonFn() {
 
 void coinInserterFn() {
 	if (slotRunning == false) {
-		Serial.println(coinInserter.getPressedTicks());
+		// Serial.println(coinInserter.getPressedTicks());
 		credit = credit + 20;
 		updateBetInfo();
 		printNumberWithLabelToLCD("Credit: ", credit, 8, 1); // update credit info
@@ -508,14 +515,14 @@ void slotWatch() {
 		if (cylinder1.isCylinderRolling() == false && cylinder2.isCylinderRolling() == false && cylinder3.isCylinderRolling() == false) {
 			// all cylinders stopped
 
-			Serial.println("###############");
-			Serial.print("CYL 1: ");
-			Serial.println(cylinder1.getPosition());
-			Serial.print("CYL 2: ");
-			Serial.println(cylinder2.getPosition());
-			Serial.print("CYL 3: ");
-			Serial.println(cylinder3.getPosition());
-			Serial.println("---------------");
+			// Serial.println("###############");
+			// Serial.print("CYL 1: ");
+			// Serial.println(cylinder1.getPosition());
+			// Serial.print("CYL 2: ");
+			// Serial.println(cylinder2.getPosition());
+			// Serial.print("CYL 3: ");
+			// Serial.println(cylinder3.getPosition());
+			// Serial.println("---------------");
 			/* TODO
 				- first two symbols pays as 0.5 bet MAYBE
 			*/
@@ -529,7 +536,7 @@ void slotWatch() {
 				playWinSong();
 				credit += (symbolValue[cylinder1.getPosition()] * bet);
 				winner = true;
-				Serial.println("*** WINNER ***");
+				// Serial.println("*** WINNER ***");
 			}
 
 			/* JOKERS: If bet > 10, joker symbol (9) act as any symbol.
@@ -546,7 +553,7 @@ void slotWatch() {
 				playWinSong();
 				credit += (symbolValue[cylinder1.getPosition()] * bet);
 				winner = true;
-				Serial.println("*** WINNER with JOKERS ***");
+				// Serial.println("*** WINNER with JOKERS ***");
 			}
 			// J | x | J
 			if (winner == false && (bet >= 10 &&
@@ -556,7 +563,7 @@ void slotWatch() {
 				playWinSong();
 				credit += (symbolValue[cylinder2.getPosition()] * bet);
 				winner = true;
-				Serial.println("*** WINNER with JOKERS ***");
+				// Serial.println("*** WINNER with JOKERS ***");
 			}
 			/*
 				 J | J | x
@@ -570,7 +577,7 @@ void slotWatch() {
 				playWinSong();
 				credit += (symbolValue[cylinder3.getPosition()] * bet);
 				winner = true;
-				Serial.println("*** WINNER with JOKERS ***");
+				// Serial.println("*** WINNER with JOKERS ***");
 			}
 			// JOKERS end
 
@@ -582,13 +589,13 @@ void slotWatch() {
 					lcd.setCursor(0, 1);
 					lcd.print("  iNSERT  C0iN  ");
 					startLed.off();
-					Serial.println("!!! GAME OVER !!!");
+					// Serial.println("!!! GAME OVER !!!");
 				} else {
-					Serial.println("-_- LOSER -_-");
+					// Serial.println("-_- LOSER -_-");
 				}
 
-				Serial.print("credit: ");
-				Serial.println(credit);
+				// Serial.print("credit: ");
+				// Serial.println(credit);
 			}
 
 			if (credit > 0) {
@@ -605,13 +612,15 @@ void slotWatch() {
 // =======================================================================
 
 void setup() {
-    Serial.begin(115200);
+    // Serial.begin(9600); // 115200
+		// Serial.println("STARTING SLOT MACHINE");
 
 		// init LCD. Shows bet and credits.
 		lcd.init();
 		lcd.backlight();
   	updateBetInfo();
-		printNumberWithLabelToLCD("Credit: ", credit, 8, 1);
+		lcd.setCursor(0, 1);
+		lcd.print("  iNSERT  C0iN  ");
 
 		// init display 8x8 matrix with DIN, CS, CLK
 		cylinder1.initMatrix(CYLINDER_1_DIN, CYLINDER_1_CS, CYLINDER_1_CLK);
