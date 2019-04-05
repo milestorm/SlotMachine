@@ -29,6 +29,8 @@
 #define LED_START A1
 //#define LED_BET A0
 
+#define ADC_SEED_PIN A7
+
 // ============================================================
 
 // Symbol definitions
@@ -51,7 +53,7 @@ int symbolValue[10] = {4, 4, 8, 8, 12, 16, 20, 30, 40, 75};
 // Cylinder definitions
 int cylinderSymbols1[22] = {0, 1, 5, 3, 4, 9, 2, 7, 8, 9, 0, 7, 7, 9, 3, 4, 5, 3, 9, 8, 2, 4};
 int cylinderSymbols2[22] = {2, 4, 2, 1, 4, 5, 6, 9, 7, 4, 1, 4, 5, 1, 3, 9, 0, 2, 4, 8, 0, 8};
-int cylinderSymbols3[22] = {4, 1, 4, 3, 0, 9, 6, 0, 9, 4, 9, 6, 3, 8, 2, 4, 1, 0, 4, 5, 3, 2};
+int cylinderSymbols3[22] = {4, 1, 7, 3, 0, 9, 6, 0, 9, 4, 9, 6, 3, 8, 7, 4, 1, 0, 4, 5, 3, 2};
 
 // starting picture of cylinder
 byte startingPicture[] = {8, 8, B10000001, B01000010, B00100100, B00011000, B00011000, B00100100, B01000010, B10000001};
@@ -375,6 +377,55 @@ void updateBetInfo() {
 	printNumberWithLabelToLCD("Bet: ", bet, 5, 0); // update bet info
 }
 
+// seed generator from ADC pin (pins A6 and A7 on NANO)
+uint32_t get_seed(int pin) {
+
+uint16_t aread;
+union {
+   uint32_t as_uint32_t;
+   uint8_t  as_uint8_t[4];
+} seed;
+uint8_t i, t;
+
+    /* "aread" shifts 3 bits each time and the shuffle
+     * moves bytes around in chunks of 8.  To ensure
+     * every bit is combined with every other bit,
+     * loop 3 x 8 = 24 times.
+     */
+    for (i = 0; i < 24; i++) {
+
+       /* Shift three bits of A2D "noise" into aread.
+        */
+       aread <<= 3;
+       aread |= analogRead(pin) & 0x7;
+
+       /* Now shuffle the bytes of the seed
+        * and xor our new set of bits onto the
+        * the seed.
+        */
+       t = seed.as_uint8_t[0];
+       seed.as_uint8_t[0] = seed.as_uint8_t[3];
+       seed.as_uint8_t[3] = seed.as_uint8_t[1];
+       seed.as_uint8_t[1] = seed.as_uint8_t[2];
+       seed.as_uint8_t[2] = t;
+
+       seed.as_uint32_t ^= aread;
+   }
+
+   return(seed.as_uint32_t);
+}
+
+
+int randomGenerator(int min, int max) // range : [min, max)
+{
+   static bool rndGenFirst = true;
+   if (rndGenFirst) {
+      srandom(get_seed(ADC_SEED_PIN)); // seeding for the first time only!
+      rndGenFirst = false;
+   }
+   return min + random() % (( max + 1 ) - min);
+}
+
 /**
  * Push the start button
  */
@@ -387,10 +438,9 @@ void startButtonFn() {
 		updateBetInfo();
 		printNumberWithLabelToLCD("Credit: ", credit, 8, 1); // update credit info
 
-		randomSeed(analogRead(A0)); // A0 must be free (dunno, maybe :))
-		int firstNumber = random(10, 25);
-		int secondNumber = random(10);
-		int thirdNumber = random(10);
+		int firstNumber = randomGenerator(10, 25);
+		int secondNumber = randomGenerator(1,15);
+		int thirdNumber = randomGenerator(1,10);
 
 		secondNumber = firstNumber + secondNumber;
 		thirdNumber = secondNumber + thirdNumber;
@@ -574,7 +624,7 @@ void setup() {
 
 		// attach coin inserter
 		coinInserter.setDebounceTicks(2);
-		coinInserter.attachClick(coinInserterFn); 
+		coinInserter.attachClick(coinInserterFn);
 
 		// initialize easybuzzer
 		EasyBuzzer.setPin(BUZZER);
