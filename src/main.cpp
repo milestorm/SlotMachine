@@ -20,17 +20,21 @@
 #define CYLINDER_3_CS  14
 #define CYLINDER_3_CLK 16
 
-#define BUZZER 10
-// set LCD to I2C pins. Arduino Leonardo Mini is  2: SDA, 3: SCL
+// set LCD to I2C pins. Arduino Leonardo Mini (Pro Micro) is  2: SDA, 3: SCL
+
+#define SPEAKER 10
+
 #define BUTTON_START A1
 #define BUTTON_BET 0
 
+#define LED_START A0
+#define LED_BET A2
+
 #define COIN_INSERTER 1
 
-#define LED_START A0
-//#define LED_BET A3
+#define SERVO_DOOR A3
 
-#define ADC_SEED_PIN A3
+#define ADC_SEED_PIN A4 // this pin is on Pro Micro not listed on pins, but it is on the chip itself
 
 // ============================================================
 
@@ -316,15 +320,15 @@ VirtualDelay lcdDelay;
 const char songWinner[] PROGMEM = "winner:d=32:b=130:f5,c6,f5,c6,f5,c6,f5,c6,16f6";
 const char songGameOver[] PROGMEM = "gamovr:d=8:b=200:e5,b4,g4,8p,2e4";
 const char songInsertCoin[] PROGMEM = "coin:d=16:b=140:e5,8e6";
-ProgmemPlayer player(BUZZER);
+ProgmemPlayer player(SPEAKER);
 
 // credit and bets related stuff
 int credit = 0;
 
 int bet = 1; // value of bet
-int betsArr[13] = {1, 2, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100}; // possible bets
+int betsArr[16] = {1, 2, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 500, 1000}; // possible bets
 int betPos = 0; // position of bet in bet array
-int betLen = 13; // length of bet array
+int betLen = 16; // length of bet array
 
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -636,7 +640,7 @@ void setup() {
 		coinInserter.attachClick(coinInserterFn);
 
 		// initialize easybuzzer
-		EasyBuzzer.setPin(BUZZER);
+		EasyBuzzer.setPin(SPEAKER);
 
 		// blink start led
 		// startLed.blinkOn();
