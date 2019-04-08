@@ -389,39 +389,37 @@ void updateBetInfo() {
 // seed generator from ADC pin (pins A6 and A7 on NANO)
 uint32_t get_seed(int pin) {
 
-uint16_t aread;
-union {
-   uint32_t as_uint32_t;
-   uint8_t  as_uint8_t[4];
-} seed;
-uint8_t i, t;
+	uint16_t aread;
+	union {
+		uint32_t as_uint32_t;
+		uint8_t  as_uint8_t[4];
+	} seed;
+	uint8_t i, t;
 
-    /* "aread" shifts 3 bits each time and the shuffle
-     * moves bytes around in chunks of 8.  To ensure
-     * every bit is combined with every other bit,
-     * loop 3 x 8 = 24 times.
-     */
-    for (i = 0; i < 24; i++) {
+		/* "aread" shifts 3 bits each time and the shuffle
+		* moves bytes around in chunks of 8.  To ensure
+		* every bit is combined with every other bit,
+		* loop 3 x 8 = 24 times.
+		*/
+	for (i = 0; i < 24; i++) {
+		/* Shift three bits of A2D "noise" into aread. */
+		aread <<= 3;
+		aread |= analogRead(pin) & 0x7;
 
-       /* Shift three bits of A2D "noise" into aread.
-        */
-       aread <<= 3;
-       aread |= analogRead(pin) & 0x7;
+		/* Now shuffle the bytes of the seed
+		* and xor our new set of bits onto the
+		* the seed.
+		*/
+		t = seed.as_uint8_t[0];
+		seed.as_uint8_t[0] = seed.as_uint8_t[3];
+		seed.as_uint8_t[3] = seed.as_uint8_t[1];
+		seed.as_uint8_t[1] = seed.as_uint8_t[2];
+		seed.as_uint8_t[2] = t;
 
-       /* Now shuffle the bytes of the seed
-        * and xor our new set of bits onto the
-        * the seed.
-        */
-       t = seed.as_uint8_t[0];
-       seed.as_uint8_t[0] = seed.as_uint8_t[3];
-       seed.as_uint8_t[3] = seed.as_uint8_t[1];
-       seed.as_uint8_t[1] = seed.as_uint8_t[2];
-       seed.as_uint8_t[2] = t;
+		seed.as_uint32_t ^= aread;
+	}
 
-       seed.as_uint32_t ^= aread;
-   }
-
-   return(seed.as_uint32_t);
+	return(seed.as_uint32_t);
 }
 
 
@@ -482,6 +480,13 @@ void startButtonFn() {
 
 void betButtonFn() {
 	if (slotRunning == false) { // only allowed to push when cylinders are not turning
+		/* TODO
+		   kouknout, jestli mas dost penez, abys dal tu sazku. jestli ne, musi se zase jet od nuly
+			 tj kredit je 20. muzes dat bet jenom 1, 2, 5, 10, 20.
+			 pokud vyhrajes a kredit mas 65, tak muzes sazet jenom 1, 2, 5, 10, 20, 30, 40, 50, 60
+			 POZOR! Updatovat i po dobehnuti rollingu.
+			 tj. mas 100, vsadis 50, prohrajes, bet klesne na 50. betPos se musi taky podle toho updatovat.
+		*/
 		betPos++;
 		if (betPos == betLen) { // scroll thru bet array
 			betPos = 0;
