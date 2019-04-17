@@ -237,7 +237,8 @@ class Flasher {
 	unsigned long OffTime;    // milliseconds of off-time
 	int ledState;    // ledState used to set the LED
 	unsigned long previousMillis;  	// will store last time LED was updated
-	bool updateFlshr = false; // global on/off
+	bool updateFlshr = false; // flashing on/off
+	bool isOn = false; // global on/off
 
   public:
   Flasher(int pin, long on, long off) {
@@ -280,17 +281,23 @@ class Flasher {
 
 	void permanentOn() {
 		updateFlshr = false;
+		isOn = true;
 		digitalWrite(ledPin, HIGH);
 	}
 
 	void off() {
 		updateFlshr = false;
+		isOn = false;
 		ledState = LOW;
 		digitalWrite(ledPin, LOW);
 	}
 
 	bool isBlinking() {
 		return updateFlshr;
+	}
+	
+	bool isPermanentOn() {
+		return isOn;
 	}
 };
 
@@ -308,6 +315,7 @@ SlotCylinder cylinder3(cylinderSymbols3, 22, 15);
 OneButton startButton(BUTTON_START, true); // Buttons can be on analog pins
 Flasher   startLed(LED_START, 300, 300); // set light to current button
 OneButton betButton(BUTTON_BET, true);
+Flasher   betLed(LED_BET, 300, 300);
 
 OneButton coinInserter(COIN_INSERTER, true);
 
@@ -443,6 +451,7 @@ void startButtonFn() {
 		credit -= bet; // bets the money
 
 		startLed.off(); // turns off the light on button
+		betLed.off();
 
 		updateBetInfo();
 		printNumberWithLabelToLCD("Credit: ", credit, 8, 1); // update credit info
@@ -478,19 +487,30 @@ void startButtonFn() {
 	}
 }
 
+// walk thru the bet array to get the highest possible bet. if bet <= credit
+void setCorrectBet() {
+	if (bet > credit) { // only if bet is greater than credit
+		for (int i = betLen-1; i --> 0;) {
+			if (betsArr[i] <= credit) {
+				betPos = i;
+				bet = betsArr[i];
+				updateBetInfo();
+				break;
+			}		
+		}
+	}	
+}
+
 void betButtonFn() {
 	if (slotRunning == false) { // only allowed to push when cylinders are not turning
-		/* TODO
-		   kouknout, jestli mas dost penez, abys dal tu sazku. jestli ne, musi se zase jet od nuly
-			 tj kredit je 20. muzes dat bet jenom 1, 2, 5, 10, 20.
-			 pokud vyhrajes a kredit mas 65, tak muzes sazet jenom 1, 2, 5, 10, 20, 30, 40, 50, 60
-			 POZOR! Updatovat i po dobehnuti rollingu.
-			 tj. mas 100, vsadis 50, prohrajes, bet klesne na 50. betPos se musi taky podle toho updatovat.
-		*/
 		betPos++;
 		if (betPos == betLen) { // scroll thru bet array
 			betPos = 0;
 		}
+		if (betsArr[betPos] > credit) { // scroll is shortened due to the lack of credits
+			betPos = 0;
+		}
+		
 		bet = betsArr[betPos];
 
 		updateBetInfo();
@@ -510,6 +530,10 @@ void coinInserterFn() {
 
 		if (startLed.isBlinking() == false) {
 			startLed.blinkOn();
+		}
+
+		if (betLed.isBlinking() == false) {
+			betLed.blinkOn();
 		}
 	}
 }
@@ -598,9 +622,12 @@ void slotWatch() {
 					lcd.setCursor(0, 1);
 					lcd.print("  iNSERT  C0iN  ");
 					startLed.off();
+					betLed.off();
 					// Serial.println("!!! GAME OVER !!!");
 				} else {
 					// Serial.println("-_- LOSER -_-");
+					// check if credit is enough to match the bet
+					setCorrectBet();
 				}
 
 				// Serial.print("credit: ");
@@ -610,6 +637,7 @@ void slotWatch() {
 			if (credit > 0) {
 				printNumberWithLabelToLCD("Credit: ", credit, 8, 1); // update credit info
 				startLed.blinkOn();
+				betLed.blinkOn();
 			}
 
 			slotRunning = false;
@@ -668,6 +696,7 @@ void loop() {
 
 		// LED watcher
 		startLed.update();
+		betLed.update();
 
 		// sound watcher
 		EasyBuzzer.update();
