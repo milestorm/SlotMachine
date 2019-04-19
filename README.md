@@ -57,4 +57,4 @@ The following wiring is for Arudino Pro Micro:
 For my slot machine I used my own design of the box, which is 3D printed, and have separated space for coins and for electronics.
 
 
-You can download and print it out from [STLs](./assets/stl/). If you want to edit the design, to fit your own components (ie. speaker, trimmer, etc...), the [Fusion 360 archive files](./assets/fusion360/) are also available. For the [BET and SPIN button](./assets/graphics/button_design.pdf), you can print out the design on a sticker, and then put it inside the button.
+You can download and print it out from [STLs](./assets/stl/). If you want to edit the design, to fit your own components (ie. speaker, trimmer, etc...), the [Fusion 360 archive files](./assets/fusion_360/) are also available. For the [BET and SPIN button](./assets/graphics/button_design.pdf), you can print out the design on a sticker, and then put it inside the button.
