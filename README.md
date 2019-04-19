@@ -28,28 +28,28 @@ Use the prototype board for the Arduino and dupont cables to [connect the module
 
 
 The following wiring is for Arudino Pro Micro:
-|Arduino Pin| Module Pin|
-|--|--|
-|D0(TX)| Coin inserter (IR switch's D0 pin)|
-|D1(RX)| Bet Button SWITCH|
-|D2| LCD (SDA pin) |
-|D3| LCD (SCL pin)|
-|D4| DotMatrix 1 (DIN pin)|
-|D5| DotMatrix 1 (CS pin)|
-|D6| DotMatrix 1 (CLK pin)|
-|D7| DotMatrix 2 (DIN pin)|
-|D8| DotMatrix 2 (CS pin)|
-|D9| DotMatrix 2 (CLK pin)|
-|D10| Speaker|
-|D16| DotMatrix 3 (CLK pin)|
-|D14| DotMatrix 3 (CS pin)|
-|D15| DotMatrix 3 (DIN pin)|
-|A0| Start Button LED|
-|A1| Start Button SWITCH|
-|A2| Bet Button LED|
-|A3| -not connected-|
-|GND| Common ground |
-|RAW| +5V from the StepDown converter|
+| Arduino Pin | Module Pin |
+| -- | -- |
+| D0(TX) | Coin inserter (IR switch's D0 pin) |
+| D1(RX) | Bet Button SWITCH |
+| D2 | LCD (SDA pin) |
+| D3 | LCD (SCL pin) |
+| D4 | DotMatrix 1 (DIN pin) |
+| D5 | DotMatrix 1 (CS pin) |
+| D6 | DotMatrix 1 (CLK pin) |
+| D7 | DotMatrix 2 (DIN pin) |
+| D8 | DotMatrix 2 (CS pin) |
+| D9 | DotMatrix 2 (CLK pin) |
+| D10 | Speaker |
+| D16 | DotMatrix 3 (CLK pin) |
+| D14 | DotMatrix 3 (CS pin) |
+| D15 | DotMatrix 3 (DIN pin) |
+| A0 | Start Button LED |
+| A1 | Start Button SWITCH |
+| A2 | Bet Button LED |
+| A3 | -not connected- |
+| GND | Common ground |
+| RAW | +5V from the StepDown converter |
 
 
 ## Casing
