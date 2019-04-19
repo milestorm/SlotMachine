@@ -8,6 +8,17 @@ Just put some cash in, place bet and spin the reels.
 
 Every coin counts as 20 credits.
 
+## How it works
+
+- Put any coin to the slot on the upper side. That gives you 20 credits.
+    - This works with infrared switch, so the value is always the same.
+- With the BET button place your bet for one spin.
+    - TIP: If you bet more than 10 credits, the "smiley faces" are jokers - it replaces any symbol
+- Push the SPIN button to spin the reels.
+- If you got three same symbols you win!
+- If not, you lose.
+- There is no "pay" button - Therefore money bank or piggy bank. So you only save money with a little bit of fun.
+
 ## Bill Of Materials
 - 1x Arduino Pro Micro (ATmega 32U4, 5V, 16MHz) | [Aliexpress link](https://www.aliexpress.com/item/New-Pro-Micro-for-arduino-ATmega32U4-5V-16MHz-Module-with-2-row-pin-header-For-Leonardo/32768308647.html)
 - 1x IR Reflective switch | [Aliexpress link](https://www.aliexpress.com/item/1PCS-TCRT5000-Infrared-Reflective-IR-Photoelectric-Switch-Barrier-Line-Track-Sensor-Module/32817041068.html)
