@@ -58,3 +58,8 @@ For my slot machine I used my own design of the box, which is 3D printed, and ha
 
 
 You can download and print it out from [STLs](./assets/stl/). If you want to edit the design, to fit your own components (ie. speaker, trimmer, etc...), the [Fusion 360 archive files](./assets/fusion_360/) are also available. For the [BET and SPIN button](./assets/graphics/button_design.pdf), you can print out the design on a sticker, and then put it inside the button.
+
+
+You may need use a drillbit to enlarge the holes a bit. It depends on your 3D printer calibration settings. (I had to use it, my printer is a bit off). Use M4 drillbit for the bigger holes, and M3 for the smaller holes.
+
+Then put the knurled nuts into each bigger hole. In my opinon is the best for you tu put the knurled nut on a screw, and grab the screwhead with pliers. You may use a bit of force, or try to heat the nut with the lighter and then push it to the hole.
