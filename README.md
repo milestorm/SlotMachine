@@ -28,6 +28,7 @@ Use the prototype board for the Arduino and dupont cables to [connect the module
 
 
 The following wiring is for Arudino Pro Micro:
+
 | Arduino Pin | Module Pin |
 | -- | -- |
 | D0(TX) | Coin inserter (IR switch's D0 pin) |
