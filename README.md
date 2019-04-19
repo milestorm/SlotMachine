@@ -19,6 +19,23 @@ Every coin counts as 20 credits.
 - If not, you lose.
 - There is no "pay" button - Therefore money bank or piggy bank. So you only save money with a little bit of fun.
 
+### Table of winnings
+
+The following table is for __bet of 10 credits__
+
+| Three symbols | Winning |
+| -- | -- |
+| Cherry | 40 |
+| Lemon | 40 |
+| Orange | 80 |
+| Plum | 80 |
+| Bell | 120 |
+| Grape | 160 |
+| Melon | 120 |
+| Seven | 300 |
+| Star | 400 |
+| Joker | 750 |
+
 ## Bill Of Materials
 - 1x Arduino Pro Micro (ATmega 32U4, 5V, 16MHz) | [Aliexpress link](https://www.aliexpress.com/item/New-Pro-Micro-for-arduino-ATmega32U4-5V-16MHz-Module-with-2-row-pin-header-For-Leonardo/32768308647.html)
 - 1x IR Reflective switch | [Aliexpress link](https://www.aliexpress.com/item/1PCS-TCRT5000-Infrared-Reflective-IR-Photoelectric-Switch-Barrier-Line-Track-Sensor-Module/32817041068.html)
