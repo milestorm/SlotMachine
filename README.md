@@ -52,7 +52,7 @@ The following table is for __bet of 10 credits__, three same symbols in line
 - M3x3x4 knurled nuts | [Aliexpress link](https://www.aliexpress.com/item/100pcs-M2-M2-5-M3-Copper-Inserts-Brass-Double-Pass-Knurl-Nut-Embedded-Fastener/32842866575.html)
 
 ## Wiring the Arduino
-Use the prototype board for the Arduino and dupont cables to [connect the modules to the board](./assets/graphics/smmb_wiring.svg).
+Use the prototype board for the Arduino and dupont cables to [connect the modules to the board](./assets/graphics/smmb_wiring.png).
 
 
 The following wiring is for Arudino Pro Micro:
