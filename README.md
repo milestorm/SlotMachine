@@ -21,20 +21,20 @@ Every coin counts as 20 credits.
 
 ### Table of winnings
 
-The following table is for __bet of 10 credits__
+The following table is for __bet of 10 credits__, three same symbols in line
 
-| Three symbols | Winning |
-| -- | -- |
-| Cherry | 40 |
-| Lemon | 40 |
-| Orange | 80 |
-| Plum | 80 |
-| Bell | 120 |
-| Grape | 160 |
-| Melon | 120 |
-| Seven | 300 |
-| Star | 400 |
-| Joker | 750 |
+| Name | Symbol | Winning |
+| -- | -- | -- |
+| Cherry | <img src="./assets/graphics/symbol_cherry.svg" width="23" /> | 40 |
+| Lemon | <img src="./assets/graphics/symbol_lemon.svg" width="23" /> | 40 |
+| Orange | <img src="./assets/graphics/symbol_orange.svg" width="23" /> | 80 |
+| Plum | <img src="./assets/graphics/symbol_plum.svg" width="23" /> | 80 |
+| Bell | <img src="./assets/graphics/symbol_bell.svg" width="23" /> | 120 |
+| Grape | <img src="./assets/graphics/symbol_grape.svg" width="23" /> | 160 |
+| Melon | <img src="./assets/graphics/symbol_melon.svg" width="23" /> | 120 |
+| Seven | <img src="./assets/graphics/symbol_seven.svg" width="23" /> | 300 |
+| Star | <img src="./assets/graphics/symbol_star.svg" width="23" /> | 400 |
+| Joker | <img src="./assets/graphics/symbol_joker.svg" width="23" /> | 750 |
 
 ## Bill Of Materials
 - 1x Arduino Pro Micro (ATmega 32U4, 5V, 16MHz) | [Aliexpress link](https://www.aliexpress.com/item/New-Pro-Micro-for-arduino-ATmega32U4-5V-16MHz-Module-with-2-row-pin-header-For-Leonardo/32768308647.html)
