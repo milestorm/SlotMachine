@@ -10,7 +10,7 @@ Every coin counts as 20 credits.
 
 ## How it works
 
-See for yourself on ![YouTube video](https://youtu.be/UOQ7gbU4U8M)
+See for yourself on [YouTube video](https://youtu.be/UOQ7gbU4U8M)
 
 - Put any coin to the slot on the upper side. That gives you 20 credits.
     - This works with infrared switch, so the value is always the same.
