@@ -49,15 +49,22 @@ PROGMEM const unsigned char CH[] = {
 8, 8, B00011100, B00111110, B01111101, B11111010, B11110100, B11101000, B01010000, B00100000, // 6: melon
 8, 8, B00011000, B00011000, B00011000, B00011000, B00110000, B01100000, B01111110, B01111110, // 7: seven
 8, 8, B01000010, B00100100, B00011000, B00111100, B11111111, B00011000, B00010000, B00010000, // 8: star
+8, 8, B00111100, B01000010, B10011001, B10100101, B10000001, B10100101, B01000010, B00111100, // 9: joker
 };
 
 // Symbols pay value (0 to 9), for bets x1
-int symbolValue[9] = {3, 3, 5, 5, 10, 20, 30, 40, 75};
+int symbolValue[10] = {3, 3, 5, 5, 10, 20, 30, 40, 75, 75};
 
 // Cylinder definitions
-int cylinderSymbols1[24] = {8, 5, 5, 0, 1, 0, 1, 7, 3, 3, 3, 2, 2, 2, 0, 0, 0, 4, 4, 4, 6, 1, 1, 1};
-int cylinderSymbols2[24] = {8, 4, 4, 0, 0, 0, 0, 1, 6, 6, 1, 1, 1, 7, 1, 1, 2, 2, 2, 3, 5, 3, 3, 3};
-int cylinderSymbols3[24] = {8, 2, 2, 2, 4, 4, 0, 0, 1, 0, 1, 1, 1, 6, 7, 3, 3, 3, 5, 5, 0, 0, 0, 2};
+int cylinderSymbols1[24] = {8, 5, 5, 9, 1, 0, 1, 7, 3, 3, 3, 2, 2, 2, 0, 0, 0, 4, 4, 4, 6, 1, 1, 1};
+int cylinderSymbols2[24] = {8, 4, 4, 0, 0, 0, 9, 1, 6, 6, 1, 1, 1, 7, 1, 1, 2, 2, 2, 3, 5, 3, 3, 3};
+int cylinderSymbols3[24] = {8, 2, 2, 2, 4, 4, 0, 0, 1, 9, 1, 1, 1, 6, 7, 3, 3, 3, 5, 5, 0, 0, 0, 2};
+
+// Count of symbol on each reel
+int totalSymbols = 24;
+
+// reel speed. In milliseconds. Lower is faster.
+int reelSpeed = 12;
 
 // starting picture of cylinder
 byte startingPicture[] = {8, 8, B10000001, B01000010, B00100100, B00011000, B00011000, B00100100, B01000010, B10000001};
@@ -306,9 +313,9 @@ class Flasher {
 LiquidCrystal_I2C lcd(0x27,16,4);
 
 // initialize all cylinders
-SlotCylinder cylinder1(cylinderSymbols1, 22, 15);
-SlotCylinder cylinder2(cylinderSymbols2, 22, 15);
-SlotCylinder cylinder3(cylinderSymbols3, 22, 15);
+SlotCylinder cylinder1(cylinderSymbols1, totalSymbols, reelSpeed);
+SlotCylinder cylinder2(cylinderSymbols2, totalSymbols, reelSpeed);
+SlotCylinder cylinder3(cylinderSymbols3, totalSymbols, reelSpeed);
 
 // initialize buttons
 OneButton startButton(BUTTON_START, true); // Buttons can be on analog pins
@@ -576,7 +583,6 @@ void slotWatch() {
 				 x | x | J
 				 x | J | J
 			*/
-		/*
 			if (winner == false && (bet >= 10 &&
 					((cylinder2.getPosition() == 9 && cylinder1.getPosition() == cylinder3.getPosition()) ||
 					(cylinder3.getPosition() == 9 && cylinder1.getPosition() == cylinder2.getPosition()) ||
@@ -598,12 +604,10 @@ void slotWatch() {
 				winner = true;
 				// Serial.println("*** WINNER with JOKERS ***");
 			}
-		*/
 			/*
 				 J | J | x
 				 J | x | x
 			*/
-		/*
 			if (winner == false && (bet >= 10 &&
 					((cylinder1.getPosition() == 9 && cylinder2.getPosition() == cylinder3.getPosition()) ||
 					(cylinder1.getPosition() == 9 && cylinder2.getPosition() == 9)
@@ -614,7 +618,6 @@ void slotWatch() {
 				winner = true;
 				// Serial.println("*** WINNER with JOKERS ***");
 			}
-		*/
 			// JOKERS end
 
 			if (winner == false) {
