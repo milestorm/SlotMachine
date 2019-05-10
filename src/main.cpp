@@ -53,12 +53,18 @@ PROGMEM const unsigned char CH[] = {
 };
 
 // Symbols pay value (0 to 9), for bets x1
-int symbolValue[10] = {4, 4, 8, 8, 12, 16, 20, 30, 40, 75};
+int symbolValue[10] = {3, 3, 5, 5, 10, 20, 30, 40, 75, 75};
 
 // Cylinder definitions
-int cylinderSymbols1[22] = {0, 1, 5, 3, 4, 9, 2, 7, 8, 9, 0, 7, 7, 9, 3, 4, 5, 3, 9, 8, 2, 4};
-int cylinderSymbols2[22] = {2, 4, 2, 1, 4, 5, 6, 9, 7, 4, 1, 4, 5, 1, 3, 9, 0, 2, 4, 8, 0, 8};
-int cylinderSymbols3[22] = {4, 1, 7, 3, 0, 9, 6, 0, 9, 4, 9, 6, 3, 8, 7, 4, 1, 0, 4, 5, 3, 2};
+int cylinderSymbols1[24] = {8, 5, 5, 9, 1, 0, 1, 7, 3, 3, 3, 2, 2, 2, 0, 0, 0, 4, 4, 4, 6, 1, 1, 1};
+int cylinderSymbols2[24] = {8, 4, 4, 0, 0, 0, 9, 1, 6, 6, 1, 1, 1, 7, 1, 1, 2, 2, 2, 3, 5, 3, 3, 3};
+int cylinderSymbols3[24] = {8, 2, 2, 2, 4, 4, 0, 0, 1, 9, 1, 1, 1, 6, 7, 3, 3, 3, 5, 5, 0, 0, 0, 2};
+
+// Count of symbol on each reel
+int totalSymbols = 24;
+
+// reel speed. In milliseconds. Lower is faster.
+int reelSpeed = 12;
 
 // starting picture of cylinder
 byte startingPicture[] = {8, 8, B10000001, B01000010, B00100100, B00011000, B00011000, B00100100, B01000010, B10000001};
@@ -307,9 +313,9 @@ class Flasher {
 LiquidCrystal_I2C lcd(0x27,16,4);
 
 // initialize all cylinders
-SlotCylinder cylinder1(cylinderSymbols1, 22, 15);
-SlotCylinder cylinder2(cylinderSymbols2, 22, 15);
-SlotCylinder cylinder3(cylinderSymbols3, 22, 15);
+SlotCylinder cylinder1(cylinderSymbols1, totalSymbols, reelSpeed);
+SlotCylinder cylinder2(cylinderSymbols2, totalSymbols, reelSpeed);
+SlotCylinder cylinder3(cylinderSymbols3, totalSymbols, reelSpeed);
 
 // initialize buttons
 OneButton startButton(BUTTON_START, true); // Buttons can be on analog pins
@@ -333,10 +339,10 @@ ProgmemPlayer player(SPEAKER);
 // credit and bets related stuff
 int credit = 0;
 
-int bet = 1; // value of bet
-int betsArr[16] = {1, 2, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 500, 1000}; // possible bets
+int bet = 2; // value of bet
+int betsArr[15] = {2, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 500, 1000}; // possible bets
 int betPos = 0; // position of bet in bet array
-int betLen = 16; // length of bet array
+int betLen = 15; // length of bet array
 
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
